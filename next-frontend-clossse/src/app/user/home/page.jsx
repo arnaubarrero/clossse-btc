@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Menu } from '../../components/menu/menu';
 import { getNameWithToken } from '../../plugins/communicationManager';
 
 export default function Home() {
@@ -30,6 +31,7 @@ export default function Home() {
     return (
         <div>
             <h1>Bienvenido, {userName}</h1>
+            < Menu />
         </div>
     );
 }
