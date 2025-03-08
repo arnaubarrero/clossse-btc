@@ -1,6 +1,6 @@
 <?php
     namespace App\Models;
-    use Laravel\Sanctum\HasApiTokens; 
+    use Laravel\Sanctum\HasApiTokens;
     use Illuminate\Notifications\Notifiable;
     use Illuminate\Contracts\Auth\MustVerifyEmail;
     use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -31,5 +31,22 @@
 
         public function wallet() {
             return $this->hasOne(Wallet::class);
+        }
+
+        // Amigos añadidos por este usuario
+        public function friends() {
+            return $this->belongsToMany(User::class, 'friendships', 'user_id', 'friend_id')
+                ->withTimestamps();
+        }
+
+        // Usuarios que han añadido a este usuario como amigo
+        public function friendOf() {
+            return $this->belongsToMany(User::class, 'friendships', 'friend_id', 'user_id')
+                ->withTimestamps();
+        }
+
+        // Todos los amigos (unión de ambas relaciones)
+        public function allFriends() {
+            return $this->friends->merge($this->friendOf());
         }
     }

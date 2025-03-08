@@ -4,6 +4,7 @@
     use Illuminate\Support\Facades\Route;
     use App\Http\Controllers\UserController;
     use App\Http\Controllers\BtcAddressController;
+    use App\Http\Controllers\FriendshipController;
     use App\Http\Controllers\auth\LoginRegisterController;
 
     Route::prefix('autentificacio')->group(function () {
@@ -25,13 +26,15 @@
         $request->validate([
             'query' => 'required|string|min:1|max:255',
         ]);
-    
+
         $query = $request->input('query');
-    
+
         $results = DB::table('users')
             ->where('username', 'like', "%{$query}%")
             ->orWhere('email', 'like', "%{$query}%")
             ->get();
-    
+
         return response()->json($results);
     });
+
+    Route::middleware('auth:sanctum')->post('/add-friend', [FriendshipController::class, 'addFriend']);
