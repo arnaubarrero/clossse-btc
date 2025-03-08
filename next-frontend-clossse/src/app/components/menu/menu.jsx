@@ -4,8 +4,8 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 
 export function Menu() {
-    const pathname = usePathname(); // Obtiene la ruta actual
-    const isHome = pathname === '/user/home'; // Verifica si estás en la página de inicio
+    const pathname = usePathname();
+    const isHome = pathname === '/user/home';
 
     return (
         <>
