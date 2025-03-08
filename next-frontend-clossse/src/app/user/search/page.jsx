@@ -3,7 +3,7 @@ import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Menu } from '../../components/menu/menu';
-import { searchUsers, addFriend } from '../../plugins/communicationManager'; // Importa las funciones
+import { searchUsers, addFriend } from '../../plugins/communicationManager';
 
 export default function Home() {
     const router = useRouter();
@@ -25,7 +25,7 @@ export default function Home() {
         if (searchTerm.length >= 3) {
             const fetchResults = async () => {
                 try {
-                    const data = await searchUsers(searchTerm); // Usa la función searchUsers
+                    const data = await searchUsers(searchTerm);
                     setSearchResults(data);
                 } catch (error) {
                     console.error('Error en la búsqueda:', error);
@@ -40,7 +40,7 @@ export default function Home() {
 
     const handleAddFriend = async (friendId) => {
         try {
-            const result = await addFriend(friendId); // Usa la función addFriend
+            const result = await addFriend(friendId);
             alert(result.message);
             setSearchResults((prevResults) =>
                 prevResults.map((user) =>
@@ -61,13 +61,7 @@ export default function Home() {
                 </h1>
 
                 <div className="flex items-center justify-center space-x-4 mb-8">
-                    <input
-                        type="text"
-                        placeholder="Search User"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full max-w-md px-4 py-2 bg-gray-100 text-black rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white transition-colors duration-300"
-                    />
+                    <input type="text" placeholder="Search User" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full max-w-md px-4 py-2 bg-gray-100 text-black rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white transition-colors duration-300" />
                     <button className="p-2 bg-blue-500 rounded-lg hover:bg-blue-600 transition duration-300">
                         <Image src="/qr.svg" width={25} height={25} alt="QR" className="filter  dark:filter-none" />
                     </button>
@@ -90,17 +84,8 @@ export default function Home() {
                                         {user.is_friend ? (
                                             <span className="text-green-500">✓ Ya son amigos</span>
                                         ) : (
-                                            <button
-                                                onClick={() => handleAddFriend(user.id)}
-                                                className="p-2 bg-green-500 rounded-lg hover:bg-green-600 transition duration-300"
-                                            >
-                                                <Image
-                                                    src="/user-plus.svg"
-                                                    width={25}
-                                                    height={25}
-                                                    alt="Add User"
-                                                    className="filter dark:filter-none"
-                                                />
+                                            <button onClick={() => handleAddFriend(user.id)} className="p-2 bg-green-500 rounded-lg hover:bg-green-600 transition duration-300" >
+                                                <Image src="/user-plus.svg" width={25} height={25} alt="Add User" className="filter dark:filter-none" />
                                             </button>
                                         )}
                                     </div>
