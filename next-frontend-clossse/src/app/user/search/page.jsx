@@ -24,7 +24,12 @@ export default function Home() {
         if (searchTerm.length >= 3) {
             const fetchResults = async () => {
                 try {
-                    const response = await fetch(`http://localhost:8000/api/search?query=${searchTerm}`);
+                    const token = localStorage.getItem('Login Token'); // Obtén el token
+                    const response = await fetch(`http://localhost:8000/api/search?query=${searchTerm}`, {
+                        headers: {
+                            'Authorization': `Bearer ${token}` // Envía el token en los headers
+                        }
+                    });
                     if (response.ok) {
                         const data = await response.json();
                         setSearchResults(data);
@@ -55,7 +60,7 @@ export default function Home() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}` // Enviar el token en los headers
+                    'Authorization': `Bearer ${token}` // Envía el token en los headers
                 },
                 body: JSON.stringify({ friend_id: friendId }),
             });
@@ -64,6 +69,12 @@ export default function Home() {
 
             if (response.ok) {
                 alert(result.message);
+                // Actualiza la lista de resultados después de agregar un amigo
+                setSearchResults((prevResults) =>
+                    prevResults.map((user) =>
+                        user.id === friendId ? { ...user, is_friend: true } : user
+                    )
+                );
             } else {
                 alert(result.message);
             }
@@ -71,7 +82,6 @@ export default function Home() {
             console.error('Error al agregar amigo:', error);
         }
     };
-
 
     return (
         <div className="min-h-screen bg-white text-black dark:bg-black dark:text-white transition-colors duration-300">
@@ -107,9 +117,22 @@ export default function Home() {
                                             <span className="font-medium text-lg">{user.username}</span>
                                             <span className="text-gray-600 dark:text-gray-400">{user.email}</span>
                                         </div>
-                                        <button onClick={() => addFriend(user.id)} className="p-2 bg-green-500 rounded-lg hover:bg-green-600 transition duration-300">
-                                            <Image src="/user-plus.svg" width={25} height={25} alt="Add User" className="filter dark:filter-none" />
-                                        </button>
+                                        {user.is_friend ? (
+                                            <span className="text-green-500">✓ Ya son amigos</span>
+                                        ) : (
+                                            <button
+                                                onClick={() => addFriend(user.id)}
+                                                className="p-2 bg-green-500 rounded-lg hover:bg-green-600 transition duration-300"
+                                            >
+                                                <Image
+                                                    src="/user-plus.svg"
+                                                    width={25}
+                                                    height={25}
+                                                    alt="Add User"
+                                                    className="filter dark:filter-none"
+                                                />
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
                             ))}
