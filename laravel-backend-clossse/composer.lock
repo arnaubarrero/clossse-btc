@@ -4,8 +4,54 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "85c1d2065f70e38b0d6bf66559fb13c5",
+    "content-hash": "19fa2dc331a8e59a8eca0addef1a7682",
     "packages": [
+        {
+            "name": "bitwasp/secp256k1-php",
+            "version": "v0.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Bit-Wasp/secp256k1-php.git",
+                "reference": "18bba38cd75321a3c4201a3f8e59c99d0565eefc"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Bit-Wasp/secp256k1-php/zipball/18bba38cd75321a3c4201a3f8e59c99d0565eefc",
+                "reference": "18bba38cd75321a3c4201a3f8e59c99d0565eefc",
+                "shasum": ""
+            },
+            "type": "library",
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "Unlicense"
+            ],
+            "authors": [
+                {
+                    "name": "Ruben de Vries",
+                    "email": "ruben@rubensayshi.com"
+                },
+                {
+                    "name": "Thomas Kerin",
+                    "email": "afk11@users.noreply.github.com"
+                }
+            ],
+            "description": "PHP Extension with bindings for bitcoin/secp256k1.",
+            "keywords": [
+                "ECDSA",
+                "bitcoin",
+                "bitwasp",
+                "cryptocurrency",
+                "ecc",
+                "extension",
+                "php",
+                "secp256k1"
+            ],
+            "support": {
+                "issues": "https://github.com/Bit-Wasp/secp256k1-php/issues",
+                "source": "https://github.com/Bit-Wasp/secp256k1-php/tree/v0.2"
+            },
+            "time": "2018-07-12T17:11:33+00:00"
+        },
         {
             "name": "brick/math",
             "version": "0.12.3",

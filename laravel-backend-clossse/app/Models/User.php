@@ -14,6 +14,7 @@
             'apellidos',
             'email',
             'password',
+            'username',
         ];
 
         protected $hidden = [

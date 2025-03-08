@@ -17,7 +17,7 @@ export default function LoginForm() {
             const response = await login(email, password);
 
             if (response.token) {
-                router.push('/user/home');
+                router.push('/');
             }
         } catch (error) {
             setError('Login failed. Please check your credentials and try again.');
@@ -31,7 +31,7 @@ export default function LoginForm() {
     useEffect(() => {
         const token = localStorage.getItem('Login Token');
         if (token) {
-            router.push('/user/home');
+            router.push('/');
         }
     }, [router]);
 

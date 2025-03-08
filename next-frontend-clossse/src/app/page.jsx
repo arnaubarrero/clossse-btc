@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Menu } from '../../components/menu/menu';
-import { getNameWithToken } from '../../plugins/communicationManager';
+import { Menu } from './components/menu/menu';
+import { getNameWithToken } from './plugins/communicationManager';
 
 export default function Home() {
     const router = useRouter();

@@ -11,6 +11,7 @@
                 $table->string('apellidos');
                 $table->string('email')->unique();
                 $table->timestamp('email_verified_at')->nullable();
+                $table->string('username')->nullable();
                 $table->string('password');
                 $table->rememberToken();
                 $table->timestamps();
