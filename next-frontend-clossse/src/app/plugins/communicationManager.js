@@ -48,6 +48,25 @@ export const register = async (name, apellidos, email, password,password_confirm
     }
 };
 
+export const updateUsername = async (newUsername) => {
+    const token = localStorage.getItem('Login Token');
+    const response = await fetch(`${Host}/update-username`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ username: newUsername }),
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error al actualizar el nombre de usuario');
+    }
+
+    return response.json();
+};
+
 // ========= GET ========================
 export const getNameWithToken = async () => {
     try {

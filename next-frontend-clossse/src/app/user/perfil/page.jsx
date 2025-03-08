@@ -4,7 +4,7 @@ import Swal from 'sweetalert2';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Menu } from '../../components/menu/menu';
-import { logout, getUserInfo } from '../../plugins/communicationManager';
+import { logout, getUserInfo, updateUsername } from '../../plugins/communicationManager';
 
 export default function Home() {
     const router = useRouter();
@@ -96,29 +96,13 @@ export default function Home() {
 
     const handleUpdateUsername = async () => {
         try {
-            const token = localStorage.getItem('Login Token');
-            const response = await fetch('http://localhost:8000/api/update-username', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({ username: newUsername }),
-            });
+            const data = await updateUsername(newUsername);
 
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.error || 'Error al actualizar el nombre de usuario');
-            }
-
-            // Actualizar el estado del usuario con el nuevo nombre de usuario
             setUserInfo((prevUserInfo) => ({
                 ...prevUserInfo,
                 username: newUsername,
             }));
 
-            // Mostrar mensaje de éxito
             Swal.fire({
                 icon: 'success',
                 title: 'Éxito',
@@ -126,7 +110,6 @@ export default function Home() {
                 confirmButtonColor: '#2563EB',
             });
 
-            // Limpiar el campo de entrada y ocultar el input
             setNewUsername('');
             setIsEditingUsername(false);
         } catch (error) {
