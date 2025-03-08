@@ -135,3 +135,65 @@ export const logout = async () => {
         throw error;
     }
 };
+
+
+// ========= SEARCH ========================
+export const searchUsers = async (query) => {
+    try {
+        const token = localStorage.getItem('Login Token');
+
+        if (!token) {
+            throw new Error('No hay token de autenticación');
+        }
+
+        const response = await fetch(`${Host}/search?query=${query}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(`Error ${response.status}: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error en la búsqueda:', error);
+        throw error;
+    }
+};
+
+// ========= ADD FRIEND =====================
+export const addFriend = async (friendId) => {
+    try {
+        const token = localStorage.getItem('Login Token');
+
+        if (!token) {
+            throw new Error('No hay token de autenticación');
+        }
+
+        const response = await fetch(`${Host}/add-friend`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ friend_id: friendId }),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(`Error ${response.status}: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error al agregar amigo:', error);
+        throw error;
+    }
+};

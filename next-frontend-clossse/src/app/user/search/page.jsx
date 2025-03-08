@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Menu } from '../../components/menu/menu';
+import { searchUsers, addFriend } from '../../plugins/communicationManager'; // Importa las funciones
 
 export default function Home() {
     const router = useRouter();
@@ -12,7 +13,7 @@ export default function Home() {
 
     useEffect(() => {
         const token = localStorage.getItem('Login Token');
-        const storedUserId = localStorage.getItem('user_id'); // Guardar el ID del usuario autenticado
+        const storedUserId = localStorage.getItem('user_id');
         if (!token) {
             router.push('/user/login');
         } else {
@@ -24,20 +25,10 @@ export default function Home() {
         if (searchTerm.length >= 3) {
             const fetchResults = async () => {
                 try {
-                    const token = localStorage.getItem('Login Token'); // Obtén el token
-                    const response = await fetch(`http://localhost:8000/api/search?query=${searchTerm}`, {
-                        headers: {
-                            'Authorization': `Bearer ${token}` // Envía el token en los headers
-                        }
-                    });
-                    if (response.ok) {
-                        const data = await response.json();
-                        setSearchResults(data);
-                    } else {
-                        console.error('Error en la búsqueda');
-                    }
+                    const data = await searchUsers(searchTerm); // Usa la función searchUsers
+                    setSearchResults(data);
                 } catch (error) {
-                    console.error('Error al conectar con la API:', error);
+                    console.error('Error en la búsqueda:', error);
                 }
             };
 
@@ -47,39 +38,18 @@ export default function Home() {
         }
     }, [searchTerm]);
 
-    const addFriend = async (friendId) => {
-        const token = localStorage.getItem('Login Token');
-
-        if (!token) {
-            console.error('Error: No hay token de autenticación');
-            return;
-        }
-
+    const handleAddFriend = async (friendId) => {
         try {
-            const response = await fetch('http://localhost:8000/api/add-friend', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}` // Envía el token en los headers
-                },
-                body: JSON.stringify({ friend_id: friendId }),
-            });
-
-            const result = await response.json();
-
-            if (response.ok) {
-                alert(result.message);
-                // Actualiza la lista de resultados después de agregar un amigo
-                setSearchResults((prevResults) =>
-                    prevResults.map((user) =>
-                        user.id === friendId ? { ...user, is_friend: true } : user
-                    )
-                );
-            } else {
-                alert(result.message);
-            }
+            const result = await addFriend(friendId); // Usa la función addFriend
+            alert(result.message);
+            setSearchResults((prevResults) =>
+                prevResults.map((user) =>
+                    user.id === friendId ? { ...user, is_friend: true } : user
+                )
+            );
         } catch (error) {
             console.error('Error al agregar amigo:', error);
+            alert(error.message);
         }
     };
 
@@ -121,7 +91,7 @@ export default function Home() {
                                             <span className="text-green-500">✓ Ya son amigos</span>
                                         ) : (
                                             <button
-                                                onClick={() => addFriend(user.id)}
+                                                onClick={() => handleAddFriend(user.id)}
                                                 className="p-2 bg-green-500 rounded-lg hover:bg-green-600 transition duration-300"
                                             >
                                                 <Image
