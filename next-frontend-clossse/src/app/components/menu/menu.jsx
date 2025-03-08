@@ -18,12 +18,12 @@ export function Menu() {
                     </Link>
                     <Link href="/user/search">
                         <div className="rounded-full transition duration-300">
-                            <Image src="/search.svg" width={25} height={25} alt="Send" />
+                            <Image src="/search.svg" width={25} height={25} alt="search" />
                         </div>
                     </Link>
-                    <Link href="/user/search">
+                    <Link href="/user/send">
                         <div className="rounded-full transition duration-300">
-                            <Image src="/send.svg" width={35} height={35} alt="Search" />
+                            <Image src="/send.svg" width={35} height={35} alt="Send" />
                         </div>
                     </Link>
                     <Link href="/user/perfil">

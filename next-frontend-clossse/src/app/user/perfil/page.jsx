@@ -13,8 +13,8 @@ export default function Home() {
     const [isDarkMode, setIsDarkMode] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [newUsername, setNewUsername] = useState(''); // Estado para el nuevo nombre de usuario
-    const [isEditingUsername, setIsEditingUsername] = useState(false); // Estado para controlar la visibilidad del input
+    const [newUsername, setNewUsername] = useState('');
+    const [isEditingUsername, setIsEditingUsername] = useState(false);
 
     useEffect(() => {
         const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
@@ -155,9 +155,6 @@ export default function Home() {
                 <div>
                     {userInfo && (
                         <section className={`p-8 rounded-2xl shadow-lg ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
-                            <h2 className="text-2xl font-semibold mb-6 flex items-center gap-2">
-                                <span>User Information</span>
-                            </h2>
                             <div className="grid md:grid-cols-2 gap-6">
                                 <div className="space-y-4">
                                     <div>
@@ -201,19 +198,16 @@ export default function Home() {
                                         <label className="text-sm text-gray-500 dark:text-gray-400">Email</label>
                                         <p className="font-medium">{userInfo.email}</p>
                                     </div>
-                                    <div>
-                                        <label className="text-sm text-gray-500 dark:text-gray-400">Public Address</label>
-                                        <div className="flex items-center gap-2 mt-1">
-                                            <code className="bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-lg font-mono text-sm">
-                                                {formatAddress(userInfo.public_address)}
-                                            </code>
-                                            <button onClick={() => copyToClipboard(userInfo.public_address)} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors" title="Copy address" >
-                                                <Image src="/copy.svg" width={25} height={25} alt="Copy" className="filter dark:filter-none" />
-                                            </button>
-                                            <button onClick={() => showFullAddress(userInfo.public_address)} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors" title="View full address" >
-                                                <Image src="/eye.svg" width={25} height={25} alt="Eye" className="filter dark:filter-none" />
-                                            </button>
-                                        </div>
+                                    <div className="flex items-center gap-2 mt-1">
+                                        <code className="bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-lg font-mono text-sm">
+                                            {formatAddress(userInfo.public_address)}
+                                        </code>
+                                        <button onClick={() => copyToClipboard(userInfo.public_address)} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-gray-700 dark:text-gray-200" title="Copy address" >
+                                            <Image src="/copy.svg" width={25} height={25} alt="Copy" className="filter dark:filter-none" />
+                                        </button>
+                                        <button onClick={() => showFullAddress(userInfo.public_address)} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-gray-700 dark:text-gray-200" title="View full address" >
+                                            <Image src="/eye.svg" width={25} height={25} alt="Eye" className="filter dark:filter-none" />
+                                        </button>
                                     </div>
                                 </div>
                             </div>
