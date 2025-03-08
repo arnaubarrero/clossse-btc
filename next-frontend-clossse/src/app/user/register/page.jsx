@@ -30,7 +30,7 @@ export default function RegisterForm() {
             await register(name, apellidos, email, password, password_confirmation);
             router.push('/user/login');
         } catch (error) {
-            console.error('Error during registration:', error); // Depuración
+            console.error('Error during registration:', error);
             setError(error.message === 'Error 409: Conflict'
                 ? 'Email already exists'
                 : 'Registration failed. Please try again.');
@@ -107,7 +107,6 @@ export default function RegisterForm() {
                         >
                             {loading ? (
                                 <>
-                                    {/* <Loader2 className="animate-spin -ml-1 mr-2 h-5 w-5" /> */}
                                     Creating account...
                                 </>
                             ) : (

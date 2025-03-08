@@ -77,3 +77,33 @@ export const getNameWithToken = async () => {
         throw error;
     }
 };
+
+// ========= LOGOUT =====================
+export const logout = async () => {
+    try {
+        const token = localStorage.getItem('Login Token');
+
+        if (!token) {
+            throw new Error('No hay token de autenticación');
+        }
+
+        const response = await fetch(`${Host}/autentificacio/logout`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(`Error ${response.status}: ${response.statusText}`);
+        }
+
+        localStorage.removeItem('Login Token');
+        return { message: 'Logout exitoso' };
+    } catch (error) {
+        console.error('Error en la solicitud:', error);
+        throw error;
+    }
+};

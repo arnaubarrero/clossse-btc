@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState,useEffect  } from 'react';
 import { useRouter } from 'next/navigation';
 import { login } from '../../plugins/communicationManager';
 
@@ -27,6 +27,13 @@ export default function LoginForm() {
     const reedireccionarRegistro = () => {
         router.push('/user/register');
     };
+
+    useEffect(() => {
+        const token = localStorage.getItem('Login Token');
+        if (token) {
+            router.push('/user/home');
+        }
+    }, [router]);
 
     return (
         <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
@@ -76,7 +83,7 @@ export default function LoginForm() {
                             className="hover:cursor-pointer text-sm text-gray-400 hover:text-blue-500 transition-colors"
                         >
                             Don't have an account? Sign up
-                        </button>
+                        </button><br />
                         <button
                             className="hover:cursor-pointer text-sm text-gray-400 hover:text-blue-500 transition-colors"
                         >
