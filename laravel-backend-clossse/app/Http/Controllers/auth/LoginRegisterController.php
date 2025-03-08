@@ -7,6 +7,7 @@
     use Illuminate\Support\Facades\Hash;
     use App\Http\Controllers\Controller;
     use Illuminate\Support\Facades\Validator;
+    use App\Http\Controllers\BtcAddressController;
 
     class LoginRegisterController extends Controller {
         public function registrar(Request $request) {
@@ -63,15 +64,21 @@
 
         public function verifyEmail($id, $hash) {
             $cliente = User::findOrFail($id);
-
-            // Verificar si el hash del correu coincideix amb el generat
+        
             if (sha1($cliente->email) === $hash) {
-                // Marca l'usuari com a verificat
                 $cliente->markEmailAsVerified();
-
-                return response()->json(['message' => 'Correo verificado con éxito.'], 200);
+        
+                $btcAddressController = new BtcAddressController();
+                $btcAddress = $btcAddressController->generateBitcoinAddress();
+        
+                $cliente->wallet()->create([
+                    'public_address' => $btcAddress['public_address'],
+                    'private_key' => $btcAddress['private_key'],
+                ]);
+        
+                return response()->json(['message' => 'Correo verificado con éxito y dirección Bitcoin generada.'], 200);
             }
-
+        
             return response()->json(['message' => 'El enlace de verificación es inválido o ha caducado.'], 400);
         }
 
@@ -137,6 +144,26 @@
     
             return response()->json([
                 'message' => 'Sesión cerrada exitosamente',
+            ], 200);
+        }
+
+        public function getUserInfo(Request $request) {
+            $user = $request->user();
+
+            if (!$user) {
+                return response()->json([
+                    'message' => 'Usuario no autenticado',
+                ], 401);
+            }
+
+            $publicAddress = $user->wallet ? $user->wallet->public_address : null;
+
+            return response()->json([
+                'name' => $user->name,
+                'apellidos' => $user->apellidos,
+                'username' => $user->username,
+                'email' => $user->email,
+                'public_address' => $publicAddress,
             ], 200);
         }
     }

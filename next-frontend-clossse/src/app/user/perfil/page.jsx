@@ -1,19 +1,32 @@
 'use client';
 import Image from 'next/image';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Menu } from '../../components/menu/menu';
-import { logout } from '../../plugins/communicationManager';
+import { logout, getUserInfo } from '../../plugins/communicationManager';
 
 export default function Home() {
     const router = useRouter();
+    const [userInfo, setUserInfo] = useState(null);
 
     useEffect(() => {
         const token = localStorage.getItem('Login Token');
         if (!token) {
             router.push('/user/login');
+        } else {
+            fetchUserInfo();
         }
     }, [router]);
+
+    const fetchUserInfo = async () => {
+        try {
+            const data = await getUserInfo();
+            setUserInfo(data);
+        } catch (error) {
+            console.error('Error al obtener la información del usuario:', error);
+            router.push('/user/login');
+        }
+    };
 
     const handleLogout = async () => {
         try {
@@ -35,6 +48,17 @@ export default function Home() {
                         <Image src="/logout.svg" width={25} height={25} alt="Logout" className="filter dark:filter-none" />
                     </button>
                 </div>
+
+                {userInfo && (
+                    <div className="mt-8 p-6 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-md">
+                        <h2 className="text-2xl font-semibold mb-4">Información del Usuario</h2>
+                        <p><strong>Nombre:</strong> {userInfo.name}</p>
+                        <p><strong>Apellidos:</strong> {userInfo.apellidos}</p>
+                        <p><strong>Username:</strong> {userInfo.username}</p>
+                        <p><strong>Email:</strong> {userInfo.email}</p>
+                        <p><strong>Dirección Pública:</strong> {userInfo.public_address || 'No disponible'}</p>
+                    </div>
+                )}
             </div>
 
             <Menu />

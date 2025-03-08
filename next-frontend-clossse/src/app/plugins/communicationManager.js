@@ -78,6 +78,34 @@ export const getNameWithToken = async () => {
     }
 };
 
+export const getUserInfo = async () => {
+    const token = localStorage.getItem('Login Token');
+
+    if (!token) {
+        throw new Error('No hay token de autenticación.');
+    }
+
+    try {
+        const response = await fetch('http://localhost:8000/api/user-info', {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error('Error al obtener la información del usuario.');
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error en getUserInfo:', error);
+        throw error;
+    }
+};
+
 // ========= LOGOUT =====================
 export const logout = async () => {
     try {

@@ -31,7 +31,7 @@ export default function Home() {
                     console.error('Error al conectar con la API:', error);
                 }
             };
-    
+
             fetchResults();
         } else {
             setSearchResults([]);
@@ -61,16 +61,21 @@ export default function Home() {
                 {searchResults.length > 0 && (
                     <div className="mt-4">
                         <h2 className="text-xl font-semibold mb-4">Resultados de la búsqueda:</h2>
-                        <ul className="space-y-2">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {searchResults.map((user) => (
-                                <li key={user.id} className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
-                                    <div className="flex items-center space-x-4">
-                                        <span className="font-medium">{user.username}</span>
-                                        <span className="text-gray-600 dark:text-gray-400">{user.email}</span>
+                                <div key={user.id} className="p-6 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex flex-col space-y-2">
+                                            <span className="font-medium text-lg">{user.username}</span>
+                                            <span className="text-gray-600 dark:text-gray-400">{user.email}</span>
+                                        </div>
+                                        <div className="flex items-center">
+                                            <Image src="/user-plus.svg" width={40} height={40} alt="Add User" className="filter dark:filter-none" />
+                                        </div>
                                     </div>
-                                </li>
+                                </div>
                             ))}
-                        </ul>
+                        </div>
                     </div>
                 )}
             </div>
