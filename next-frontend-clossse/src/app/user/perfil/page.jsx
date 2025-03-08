@@ -9,12 +9,13 @@ import { logout, getUserInfo } from '../../plugins/communicationManager';
 export default function Home() {
     const router = useRouter();
     const [userInfo, setUserInfo] = useState(null);
-    const [friends, setFriends] = useState([]); // Lista de amigos desde la API
+    const [friends, setFriends] = useState([]);
     const [isDarkMode, setIsDarkMode] = useState(false);
-    const [loading, setLoading] = useState(true); // Estado de carga
-    const [error, setError] = useState(null); // Estado de error
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [newUsername, setNewUsername] = useState(''); // Estado para el nuevo nombre de usuario
+    const [isEditingUsername, setIsEditingUsername] = useState(false); // Estado para controlar la visibilidad del input
 
-    // Detectar el modo oscuro del sistema
     useEffect(() => {
         const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
         const handleDarkModeChange = (e) => {
@@ -29,7 +30,6 @@ export default function Home() {
         };
     }, []);
 
-    // Verificar autenticación y obtener información del usuario
     useEffect(() => {
         const token = localStorage.getItem('Login Token');
         if (!token) {
@@ -39,22 +39,20 @@ export default function Home() {
         }
     }, [router]);
 
-    // Obtener la información del usuario y sus amigos
     const fetchUserInfo = async () => {
         try {
             const data = await getUserInfo();
-            setUserInfo(data.user); // Guardar la información del usuario
-            setFriends(data.friends); // Guardar la lista de amigos
+            setUserInfo(data.user);
+            setFriends(data.friends);
         } catch (error) {
             console.error('Error al obtener la información del usuario:', error);
-            setError(error.message); // Establecer el mensaje de error
-            router.push('/user/login'); // Redirigir al login si hay un error
+            setError(error.message);
+            router.push('/user/login');
         } finally {
-            setLoading(false); // Finalizar el estado de carga
+            setLoading(false);
         }
     };
 
-    // Copiar la dirección pública al portapapeles
     const copyToClipboard = (text) => {
         navigator.clipboard.writeText(text).then(() => {
             Swal.fire({
@@ -74,7 +72,6 @@ export default function Home() {
         });
     };
 
-    // Mostrar la dirección pública completa
     const showFullAddress = (address) => {
         Swal.fire({
             title: 'Dirección Pública Completa',
@@ -83,13 +80,11 @@ export default function Home() {
         });
     };
 
-    // Formatear la dirección pública
     const formatAddress = (address) => {
         if (!address) return 'No disponible';
         return `${address.slice(0, 5)}...${address.slice(-8)}`;
     };
 
-    // Cerrar sesión
     const handleLogout = async () => {
         try {
             await logout();
@@ -99,7 +94,52 @@ export default function Home() {
         }
     };
 
-    // Mostrar un mensaje de carga o error
+    const handleUpdateUsername = async () => {
+        try {
+            const token = localStorage.getItem('Login Token');
+            const response = await fetch('http://localhost:8000/api/update-username', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ username: newUsername }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Error al actualizar el nombre de usuario');
+            }
+
+            // Actualizar el estado del usuario con el nuevo nombre de usuario
+            setUserInfo((prevUserInfo) => ({
+                ...prevUserInfo,
+                username: newUsername,
+            }));
+
+            // Mostrar mensaje de éxito
+            Swal.fire({
+                icon: 'success',
+                title: 'Éxito',
+                text: 'Nombre de usuario actualizado correctamente',
+                confirmButtonColor: '#2563EB',
+            });
+
+            // Limpiar el campo de entrada y ocultar el input
+            setNewUsername('');
+            setIsEditingUsername(false);
+        } catch (error) {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error.message,
+                confirmButtonColor: '#2563EB',
+            });
+        }
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center">
@@ -123,10 +163,7 @@ export default function Home() {
                     <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
                         Personal <br /> Menu
                     </h1>
-                    <button
-                        onClick={handleLogout}
-                        className="flex items-center space-x-2 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition duration-300"
-                    >
+                    <button onClick={handleLogout} className="flex items-center space-x-2 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition duration-300">
                         <span>Log Out</span>
                         <Image src="/logout.svg" width={25} height={25} alt="Logout" className="filter dark:filter-none" />
                     </button>
@@ -144,9 +181,36 @@ export default function Home() {
                                         <label className="text-sm text-gray-500 dark:text-gray-400">Full Name</label>
                                         <p className="font-medium">{`${userInfo.name} ${userInfo.apellidos}`}</p>
                                     </div>
-                                    <div>
-                                        <label className="text-sm text-gray-500 dark:text-gray-400">Username</label>
-                                        <p className="font-medium">@{userInfo.username}</p>
+                                    <label className="text-sm text-gray-500 dark:text-gray-400">Username</label>
+                                    <div className='flex flex-col'>
+                                        <div className='flex items-center'>
+                                            <p className="font-medium">@{userInfo.username}</p>
+                                            {!isEditingUsername ? (
+                                                <button onClick={() => setIsEditingUsername(true)}>
+                                                    <Image src="/pen.svg" width={25} height={25} alt="Pen" className="filter dark:filter-none ml-[10px]" />
+                                                </button>
+                                            ) : null}
+                                        </div>
+                                        {isEditingUsername && (
+                                            <div className="mt-2 flex items-center gap-2">
+                                                <input
+                                                    type="text"
+                                                    value={newUsername}
+                                                    onChange={(e) => setNewUsername(e.target.value)}
+                                                    placeholder="New username"
+                                                    className="p-2 border border-gray-300 shadow-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+                                                />
+                                                <button onClick={handleUpdateUsername} className="p-2 rounded-lg focus:outline-none focus:ring-2 text-green-600" >
+                                                    ✔
+                                                </button>
+                                                <button
+                                                    onClick={() => setIsEditingUsername(false)}
+                                                    className="p-2 rounded-lg focus:outline-none focus:ring-2 text-red-600"
+                                                >
+                                                    X
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                                 <div className="space-y-4">
@@ -160,18 +224,10 @@ export default function Home() {
                                             <code className="bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-lg font-mono text-sm">
                                                 {formatAddress(userInfo.public_address)}
                                             </code>
-                                            <button
-                                                onClick={() => copyToClipboard(userInfo.public_address)}
-                                                className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                                                title="Copy address"
-                                            >
+                                            <button onClick={() => copyToClipboard(userInfo.public_address)} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors" title="Copy address" >
                                                 <Image src="/copy.svg" width={25} height={25} alt="Copy" className="filter dark:filter-none" />
                                             </button>
-                                            <button
-                                                onClick={() => showFullAddress(userInfo.public_address)}
-                                                className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                                                title="View full address"
-                                            >
+                                            <button onClick={() => showFullAddress(userInfo.public_address)} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors" title="View full address" >
                                                 <Image src="/eye.svg" width={25} height={25} alt="Eye" className="filter dark:filter-none" />
                                             </button>
                                         </div>

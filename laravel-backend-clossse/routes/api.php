@@ -60,3 +60,5 @@ Route::middleware('auth:sanctum')->get('/search', function (Request $request) {
 });
 
 Route::middleware('auth:sanctum')->post('/add-friend', [FriendshipController::class, 'addFriend']);
+
+Route::middleware('auth:sanctum')->post('/update-username', [LoginRegisterController::class, 'updateUsername']);

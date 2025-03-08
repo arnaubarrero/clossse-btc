@@ -180,4 +180,30 @@
                 'friends' => $friends,
             ], 200);
         }
+
+        public function updateUsername(Request $request) {
+            $validator = Validator::make($request->all(), [
+                'username' => 'required|string|min:3|max:255|unique:users,username',
+            ]);
+        
+            if ($validator->fails()) {
+                return response()->json(['error' => $validator->errors()], 400);
+            }
+        
+            $user = $request->user();
+        
+            if (!$user) {
+                return response()->json([
+                    'message' => 'Usuario no autenticado',
+                ], 401);
+            }
+        
+            $user->username = $request->input('username');
+            $user->save();
+        
+            return response()->json([
+                'message' => 'Username updated successfully',
+                'username' => $user->username,
+            ], 200);
+        }
     }
