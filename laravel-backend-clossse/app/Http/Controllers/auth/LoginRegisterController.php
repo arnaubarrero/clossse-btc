@@ -149,21 +149,35 @@
 
         public function getUserInfo(Request $request) {
             $user = $request->user();
-
+        
             if (!$user) {
                 return response()->json([
                     'message' => 'Usuario no autenticado',
                 ], 401);
             }
-
-            $publicAddress = $user->wallet ? $user->wallet->public_address : null;
-
+        
+            $publicAddress = $user->wallet ? $user->wallet->public_address : null;        
+            $allFriends = $user->allFriends();
+        
+            $friends = $allFriends->map(function ($friend) {
+                return [
+                    'name' => $friend->name,
+                    'apellidos' => $friend->apellidos,
+                    'username' => $friend->username,
+                    'email' => $friend->email,
+                    'public_address' => $friend->wallet ? $friend->wallet->public_address : null,
+                ];
+            });
+        
             return response()->json([
-                'name' => $user->name,
-                'apellidos' => $user->apellidos,
-                'username' => $user->username,
-                'email' => $user->email,
-                'public_address' => $publicAddress,
+                'user' => [
+                    'name' => $user->name,
+                    'apellidos' => $user->apellidos,
+                    'username' => $user->username,
+                    'email' => $user->email,
+                    'public_address' => $publicAddress,
+                ],
+                'friends' => $friends,
             ], 200);
         }
     }

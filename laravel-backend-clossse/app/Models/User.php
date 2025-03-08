@@ -45,8 +45,9 @@
                 ->withTimestamps();
         }
 
-        // Todos los amigos (unión de ambas relaciones)
         public function allFriends() {
-            return $this->friends->merge($this->friendOf());
+            $friends = $this->friends ?? collect();
+            $friendOf = $this->friendOf ?? collect();
+            return $friends->merge($friendOf);
         }
     }

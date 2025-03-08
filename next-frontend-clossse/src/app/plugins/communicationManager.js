@@ -86,7 +86,7 @@ export const getUserInfo = async () => {
     }
 
     try {
-        const response = await fetch('http://localhost:8000/api/user-info', {
+        const response = await fetch(`${Host}/user-info`, {
             method: 'GET',
             headers: {
                 'Accept': 'application/json',

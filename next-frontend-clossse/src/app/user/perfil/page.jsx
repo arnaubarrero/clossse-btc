@@ -9,13 +9,12 @@ import { logout, getUserInfo } from '../../plugins/communicationManager';
 export default function Home() {
     const router = useRouter();
     const [userInfo, setUserInfo] = useState(null);
+    const [friends, setFriends] = useState([]); // Lista de amigos desde la API
     const [isDarkMode, setIsDarkMode] = useState(false);
-    const [friends, setFriends] = useState([
-        { id: 1, name: 'Juan Pérez', username: 'juanperez', email: 'juan@example.com' },
-        { id: 2, name: 'María Gómez', username: 'mariagomez', email: 'maria@example.com' },
-        { id: 3, name: 'Carlos López', username: 'carloslopez', email: 'carlos@example.com' },
-    ]);
+    const [loading, setLoading] = useState(true); // Estado de carga
+    const [error, setError] = useState(null); // Estado de error
 
+    // Detectar el modo oscuro del sistema
     useEffect(() => {
         const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
         const handleDarkModeChange = (e) => {
@@ -23,7 +22,6 @@ export default function Home() {
         };
 
         setIsDarkMode(darkModeMediaQuery.matches);
-
         darkModeMediaQuery.addEventListener('change', handleDarkModeChange);
 
         return () => {
@@ -31,6 +29,7 @@ export default function Home() {
         };
     }, []);
 
+    // Verificar autenticación y obtener información del usuario
     useEffect(() => {
         const token = localStorage.getItem('Login Token');
         if (!token) {
@@ -40,16 +39,22 @@ export default function Home() {
         }
     }, [router]);
 
+    // Obtener la información del usuario y sus amigos
     const fetchUserInfo = async () => {
         try {
             const data = await getUserInfo();
-            setUserInfo(data);
+            setUserInfo(data.user); // Guardar la información del usuario
+            setFriends(data.friends); // Guardar la lista de amigos
         } catch (error) {
             console.error('Error al obtener la información del usuario:', error);
-            router.push('/user/login');
+            setError(error.message); // Establecer el mensaje de error
+            router.push('/user/login'); // Redirigir al login si hay un error
+        } finally {
+            setLoading(false); // Finalizar el estado de carga
         }
     };
 
+    // Copiar la dirección pública al portapapeles
     const copyToClipboard = (text) => {
         navigator.clipboard.writeText(text).then(() => {
             Swal.fire({
@@ -69,6 +74,7 @@ export default function Home() {
         });
     };
 
+    // Mostrar la dirección pública completa
     const showFullAddress = (address) => {
         Swal.fire({
             title: 'Dirección Pública Completa',
@@ -77,11 +83,13 @@ export default function Home() {
         });
     };
 
+    // Formatear la dirección pública
     const formatAddress = (address) => {
         if (!address) return 'No disponible';
         return `${address.slice(0, 5)}...${address.slice(-8)}`;
     };
 
+    // Cerrar sesión
     const handleLogout = async () => {
         try {
             await logout();
@@ -90,6 +98,23 @@ export default function Home() {
             console.error('Logout failed:', error);
         }
     };
+
+    // Mostrar un mensaje de carga o error
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <p>Cargando información del usuario...</p>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <p>Error: {error}</p>
+            </div>
+        );
+    }
 
     return (
         <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-black'} transition-colors duration-300`}>
@@ -159,22 +184,26 @@ export default function Home() {
                     <div className={`mt-8 p-6 ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'} rounded-lg shadow-md`}>
                         <h2 className="text-2xl font-semibold mb-4">Listado de Amigos</h2>
                         <div className="space-y-4">
-                            {friends.map((friend) => (
-                                <div key={friend.id} className={`p-4 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'} rounded-lg`}>
-                                    <div className="flex items-center justify-between">
-                                        <p><strong>Nombre:</strong> {friend.name}</p>
-                                        <div className="flex justify-center items-center w-10 h-10">
-                                            <Image src="/btc.svg" width={25} height={25} alt="Btc" className="filter dark:filter-none" />
+                            {friends.length > 0 ? (
+                                friends.map((friend) => (
+                                    <div key={friend.id} className={`p-4 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'} rounded-lg`}>
+                                        <div className="flex items-center justify-between">
+                                            <p><strong>Nombre:</strong> {friend.name}</p>
+                                            <div className="flex justify-center items-center w-10 h-10">
+                                                <Image src="/btc.svg" width={25} height={25} alt="Btc" className="filter dark:filter-none" />
+                                            </div>
                                         </div>
+                                        <p><strong>Username:</strong> {friend.username}</p>
+                                        <p><strong>Email:</strong> {friend.email}</p>
+                                        <p><strong>Llave Pública:</strong> {formatAddress(friend.public_address)}</p>
                                     </div>
-                                    <p><strong>Username:</strong> {friend.username}</p>
-                                    <p><strong>Email:</strong> {friend.email}</p>
-                                </div>
-                            ))}
+                                ))
+                            ) : (
+                                <p>No tienes amigos agregados.</p>
+                            )}
                         </div>
                     </div>
                 </div>
-
             </div>
 
             <Menu />
