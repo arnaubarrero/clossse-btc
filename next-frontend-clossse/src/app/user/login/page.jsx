@@ -1,35 +1,31 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import CryptoJS from 'crypto-js';
 import { useRouter } from 'next/navigation';
+import { useState, useEffect, useRef } from 'react';
 import { login } from '../../plugins/communicationManager';
-import CryptoJS from 'crypto-js'; // Para encriptar el PIN
 
 export default function LoginForm() {
     const router = useRouter();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [pin, setPin] = useState(['', '', '', '']); // Estado para los 4 dígitos del PIN
+    const [pin, setPin] = useState(['', '', '', '']);
     const [error, setError] = useState('');
-    const inputRefs = useRef([]); // Referencias para los campos de entrada del PIN
-
-    // Función para manejar el cambio en los campos del PIN
+    const inputRefs = useRef([]);
+    
     const handlePinChange = (index, value) => {
         const newPin = [...pin];
         newPin[index] = value;
         setPin(newPin);
 
-        // Mover el foco al siguiente campo si se ingresa un dígito
         if (value && index < 3) {
             inputRefs.current[index + 1].focus();
         }
 
-        // Mover el foco al campo anterior si se borra un dígito
         if (!value && index > 0) {
             inputRefs.current[index - 1].focus();
         }
     };
 
-    // Función para manejar el envío del formulario
     const handleLogin = async (e) => {
         e.preventDefault();
         setError('');
@@ -38,16 +34,12 @@ export default function LoginForm() {
             const response = await login(email, password);
 
             if (response.token) {
-                // Encriptar el PIN antes de guardarlo en el localStorage
                 const encryptedPin = CryptoJS.AES.encrypt(
-                    pin.join(''), // Convertir el array de PIN a una cadena
-                    'secret-key' // Clave secreta para encriptar (cámbiala por una clave segura)
+                    pin.join(''),
+                    'secret-key'
                 ).toString();
 
-                // Guardar el PIN encriptado en el localStorage
                 localStorage.setItem('EncryptedPIN', encryptedPin);
-
-                // Redirigir al usuario
                 router.push('/');
             }
         } catch (error) {
@@ -55,12 +47,10 @@ export default function LoginForm() {
         }
     };
 
-    // Redirigir al registro
     const reedireccionarRegistro = () => {
         router.push('/user/register');
     };
 
-    // Verificar si el usuario ya está autenticado
     useEffect(() => {
         const token = localStorage.getItem('Login Token');
         if (token) {
@@ -86,52 +76,22 @@ export default function LoginForm() {
                     )}
 
                     <form onSubmit={handleLogin} className="space-y-6">
-                        <input
-                            type="email"
-                            placeholder="Email"
-                            required
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className="w-full px-4 py-3 bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
-                        />
-                        <input
-                            type="password"
-                            placeholder="Password"
-                            required
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="w-full px-4 py-3 bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
-                        />
+                        <input type="email" placeholder="Email" required value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-4 py-3 bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors" />
+                        <input type="password" placeholder="Password" required value={password} onChange={(e) => setPassword(e.target.value)} className="w-full px-4 py-3 bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors" />
 
-                        {/* Campos de entrada para el PIN */}
                         <div className="flex justify-center space-x-2">
                             {pin.map((digit, index) => (
-                                <input
-                                    key={index}
-                                    type="text"
-                                    maxLength="1"
-                                    placeholder="·"
-                                    value={digit}
-                                    onChange={(e) => handlePinChange(index, e.target.value)}
-                                    ref={(el) => (inputRefs.current[index] = el)} // Asignar referencia
-                                    className="w-12 h-12 text-center bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
-                                />
+                                <input key={index} type="text" required maxLength="1" placeholder="·" value={digit} onChange={(e) => handlePinChange(index, e.target.value)} ref={(el) => (inputRefs.current[index] = el)} className="w-12 h-12 text-center bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors" />
                             ))}
                         </div>
 
-                        <button
-                            type="submit"
-                            className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800"
-                        >
+                        <button type="submit" className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800" >
                             Sign In
                         </button>
                     </form>
 
                     <div className="text-center space-y-4">
-                        <button
-                            onClick={reedireccionarRegistro}
-                            className="hover:cursor-pointer text-sm text-gray-400 hover:text-blue-500 transition-colors"
-                        >
+                        <button onClick={reedireccionarRegistro} className="hover:cursor-pointer text-sm text-gray-400 hover:text-blue-500 transition-colors" >
                             Don't have an account? Sign up
                         </button>
                         <br />

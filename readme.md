@@ -1,0 +1,1 @@
+- Contrasenya enctripata al login para poder firmar transacciones seguras

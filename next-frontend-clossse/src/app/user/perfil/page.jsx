@@ -90,6 +90,7 @@ export default function Home() {
             await logout();
             localStorage.removeItem('Login Token');
             localStorage.removeItem('EncryptedPIN');
+            localStorage.removeItem('PINVerified');
             router.push('/user/login');
         } catch (error) {
             console.error('Logout failed:', error);

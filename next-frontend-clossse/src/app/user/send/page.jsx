@@ -2,6 +2,7 @@
 
 import Swal from 'sweetalert2';
 import Image from 'next/image';
+import CryptoJS from 'crypto-js';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Menu } from '../../components/menu/menu';
@@ -44,8 +45,60 @@ export default function Home() {
         }
     };
 
-    const handleTransferBTC = (userId) => {
-        router.push(`/user/send/${userId}`);
+    const handleTransferBTC = async (userId) => {
+        const encryptedPin = localStorage.getItem('EncryptedPIN');
+
+        if (!encryptedPin) {
+            Swal.fire({
+                title: 'Error',
+                text: 'No se encontró un PIN registrado. Por favor, configura un PIN primero.',
+                icon: 'error',
+                confirmButtonText: 'Cerrar',
+            });
+            return;
+        }
+
+        const { value: pin } = await Swal.fire({
+            title: 'Ingresa tu PIN',
+            input: 'password',
+            inputAttributes: {
+                maxlength: 4,
+                autocapitalize: 'off',
+                autocorrect: 'off',
+            },
+            inputPlaceholder: 'Ingresa tu PIN de 4 dígitos',
+            showCancelButton: true,
+            confirmButtonText: 'Confirmar',
+            cancelButtonText: 'Cancelar',
+            inputValidator: (value) => {
+                if (!value) { return 'Debes ingresar un PIN'; }
+                if (value.length !== 4) { return 'El PIN debe tener 4 dígitos'; }
+            },
+        });
+
+        if (pin) {
+            const decryptedPin = CryptoJS.AES.decrypt(
+                encryptedPin,
+                'secret-key'
+            ).toString(CryptoJS.enc.Utf8);
+
+            if (pin === decryptedPin) {
+                const verificationTime = new Date().getTime();
+                localStorage.setItem('PINVerified', JSON.stringify({
+                    verified: true,
+                    timestamp: verificationTime,
+                }));
+
+                router.push(`/user/send/${userId}`);
+            } else {
+                Swal.fire({
+                    title: 'Error',
+                    text: 'PIN incorrecto. Inténtalo de nuevo.',
+                    icon: 'error',
+                    confirmButtonText: 'Cerrar',
+                });
+            }
+        }
     };
 
     const handleSearch = async () => {

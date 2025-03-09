@@ -13,21 +13,37 @@ export default function SendPage({ params }) {
     const [isFriend, setIsFriend] = useState(false);
 
     useEffect(() => {
+        const pinVerifiedData = localStorage.getItem('PINVerified');
+
+        if (!pinVerifiedData) {
+            router.push('/user/send');
+            return;
+        }
+
+        const { verified, timestamp } = JSON.parse(pinVerifiedData);
+
+        const currentTime = new Date().getTime();
+        const timeElapsed = currentTime - timestamp;
+        const fifteenMinutesInMillis = 15 * 60 * 1000;
+
+        if (!verified || timeElapsed > fifteenMinutesInMillis) {
+            localStorage.removeItem('PINVerified');
+            router.push('/user/send');
+            return;
+        }
+
         if (!slug) return;
 
         const fetchData = async () => {
             try {
-                // Obtener la información del usuario actual
                 const currentUserInfo = await getUserInfo();
                 setUserInfo(currentUserInfo);
 
-                // Verificar si el usuario con el ID de la URL es amigo
                 const friend = currentUserInfo.friends.find((friend) => friend.id === parseInt(slug));
                 if (friend) {
                     setFriendInfo(friend);
                     setIsFriend(true);
                 } else {
-                    // Si no es amigo, obtener la información del usuario por su ID
                     const userData = await getUserInfoById(slug);
                     setFriendInfo(userData);
                     setIsFriend(false);
@@ -44,7 +60,7 @@ export default function SendPage({ params }) {
         };
 
         fetchData();
-    }, [slug]);
+    }, [slug, router]);
 
     if (loading) {
         return (
@@ -64,7 +80,7 @@ export default function SendPage({ params }) {
 
     return (
         <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-6">
-            <div className="max-w-4xl mx-aut  p-6">
+            <div className="max-w-4xl mx-auto p-6">
                 {friendInfo && (
                     <div className="space-y-4">
                         <h2 className={`text-2xl font-semibold ${isFriend ? 'text-green-600' : 'text-red-600'}`}>
