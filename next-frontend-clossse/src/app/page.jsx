@@ -29,64 +29,27 @@ export default function Home() {
 
     useEffect(() => {
         const token = localStorage.getItem('Login Token');
-        if (!token) {
-            router.push('/user/login');
-        } else {
-            fetchUserInfo(token);
-        }
+        if (!token) { router.push('/user/login'); } 
+        else { fetchUserInfo(token); }
     }, [router]);
 
     const fetchUserInfo = async (token) => {
         try {
             const data = await getUserInfo();
             setUserInfo(data.user);
-            if (data.user.public_address) {
-                await fetchBtcBalance(data.user.public_address);
-                await fetchTransactions(data.user.public_address);
+
+            if (data.user) {
+                const balanceBTC = data.user.balance;
+                setBtcBalance(balanceBTC.toFixed(5));
             }
+
+            if (data.transactions) { setTransactions(data.transactions); }
         } catch (error) {
             console.error('Error al obtener la información del usuario:', error);
             setError(error.message);
             router.push('/user/login');
         } finally {
             setLoading(false);
-        }
-    };
-
-    const fetchBtcBalance = async (publicAddress) => {
-        try {
-            const response = await fetch(`https://api.blockcypher.com/v1/btc/main/addrs/${publicAddress}/balance`);
-            if (!response.ok) {
-                throw new Error('Error al obtener el saldo de BTC');
-            }
-            const data = await response.json();
-            const balanceBTC = (data.balance / 100000000).toFixed(5); // Convertir de satoshis a BTC
-            setBtcBalance(balanceBTC);
-        } catch (error) {
-            console.error('Error al obtener el saldo de BTC:', error);
-            setBtcBalance('Error');
-        }
-    };
-
-    const fetchTransactions = async (publicAddress) => {
-        try {
-            const response = await fetch(`https://api.blockcypher.com/v1/btc/main/addrs/${publicAddress}/full`);
-            if (!response.ok) {
-                throw new Error('Error al obtener el historial de transacciones');
-            }
-            const data = await response.json();
-            // Agregar lógica para determinar si la transacción fue enviada o recibida
-            const processedTransactions = data.txs.map((tx) => {
-                const isSent = tx.inputs.some((input) => input.addresses.includes(publicAddress));
-                return {
-                    ...tx,
-                    type: isSent ? 'Sent' : 'Received',
-                };
-            });
-            setTransactions(processedTransactions);
-        } catch (error) {
-            console.error('Error al obtener el historial de transacciones:', error);
-            setTransactions([]);
         }
     };
 
@@ -137,17 +100,12 @@ export default function Home() {
                                         {transactions.map((tx, index) => (
                                             <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
                                                 <td className="px-6 py-4">
-                                                    <span
-                                                        className={`px-2 py-1 rounded-full text-sm font-semibold ${tx.type === 'Sent'
-                                                                ? 'bg-red-100 text-red-600 dark:bg-red-600 dark:text-red-100'
-                                                                : 'bg-green-100 text-green-600 dark:bg-green-600 dark:text-green-100'
-                                                            }`}
-                                                    >
+                                                    <span className={`px-2 py-1 rounded-full text-sm font-semibold ${tx.type === 'Sent' ? 'bg-red-100 text-red-600 dark:bg-red-600 dark:text-red-100' : 'bg-green-100 text-green-600 dark:bg-green-600 dark:text-green-100' }`} >
                                                         {tx.type}
                                                     </span>
                                                 </td>
-                                                <td className="px-6 py-4">{(tx.total / 100000000).toFixed(5)}</td>
-                                                <td className="px-6 py-4">{new Date(tx.received).toLocaleString()}</td>
+                                                <td className="px-6 py-4">{tx.amount.toFixed(5)}</td>
+                                                <td className="px-6 py-4">{tx.date}</td>
                                             </tr>
                                         ))}
                                     </tbody>
