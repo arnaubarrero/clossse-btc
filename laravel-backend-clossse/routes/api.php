@@ -32,21 +32,16 @@ Route::middleware('auth:sanctum')->get('/search', function (Request $request) {
     $user = $request->user();
 
     $results = DB::table('users')
+        ->leftJoin('wallets', 'users.id', '=', 'wallets.user_id')
         ->where('username', 'like', "%{$query}%")
         ->orWhere('email', 'like', "%{$query}%")
-        ->select('id', 'username', 'email')
+        ->select( 'users.id', 'users.username', 'users.email', 'wallets.public_address' )
         ->get();
 
     $results = $results->map(function ($userResult) use ($user) {
         $isFriend = DB::table('friendships')
-            ->where(function ($query) use ($user, $userResult) {
-                $query->where('user_id', $user->id)
-                    ->where('friend_id', $userResult->id);
-            })
-            ->orWhere(function ($query) use ($user, $userResult) {
-                $query->where('user_id', $userResult->id)
-                    ->where('friend_id', $user->id);
-            })
+            ->where(function ($query) use ($user, $userResult) { $query->where('user_id', $user->id) ->where('friend_id', $userResult->id); })
+            ->orWhere(function ($query) use ($user, $userResult) { $query->where('user_id', $userResult->id) ->where('friend_id', $user->id); })
             ->exists();
 
         $userResult->is_friend = $isFriend;

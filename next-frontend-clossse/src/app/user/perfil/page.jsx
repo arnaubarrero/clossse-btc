@@ -88,6 +88,8 @@ export default function Home() {
     const handleLogout = async () => {
         try {
             await logout();
+            localStorage.removeItem('Login Token');
+            localStorage.removeItem('EncryptedPIN');
             router.push('/user/login');
         } catch (error) {
             console.error('Logout failed:', error);

@@ -64,11 +64,11 @@ export default function SendPage({ params }) {
 
     return (
         <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-6">
-            <div className="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+            <div className="max-w-4xl mx-aut  p-6">
                 {friendInfo && (
                     <div className="space-y-4">
                         <h2 className={`text-2xl font-semibold ${isFriend ? 'text-green-600' : 'text-red-600'}`}>
-                            {isFriend ? 'Este usuario es tu amigo.' : 'Este usuario no es tu amigo.'}
+                            {isFriend ? 'Is your friend' : 'He is not your friend'}
                         </h2>
 
                         <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
