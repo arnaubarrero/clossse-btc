@@ -5,12 +5,14 @@ import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Menu } from '../../components/menu/menu';
-import { getUserInfo } from '../../plugins/communicationManager';
+import { getUserInfo, searchUsers } from '../../plugins/communicationManager';
 
 export default function Home() {
     const router = useRouter();
     const [isFriend, setIsFriend] = useState(null);
     const [userInfo, setUserInfo] = useState(null);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState([]);
 
     const formatPublicAddress = (address) => {
         if (!address) return '';
@@ -42,8 +44,23 @@ export default function Home() {
         }
     };
 
-    const handleTransferBTC = (friendId) => {
-        router.push(`/user/send/${friendId}`);
+    const handleTransferBTC = (userId) => {
+        router.push(`/user/send/${userId}`);
+    };
+
+    const handleSearch = async () => {
+        try {
+            const results = await searchUsers(searchQuery);
+            setSearchResults(results);
+        } catch (error) {
+            console.error('Error al buscar usuarios:', error);
+            Swal.fire({
+                title: 'Error',
+                text: 'No se pudo realizar la búsqueda',
+                icon: 'error',
+                confirmButtonText: 'Cerrar',
+            });
+        }
     };
 
     useEffect(() => {
@@ -114,10 +131,53 @@ export default function Home() {
                     )}
                 </div>
             ) : (
-                <div className="flex flex-col h-[calc(80vh-8rem)] items-center justify-center">
+                <div className="flex flex-col items-center justify-center">
                     <p className="mb-4 text-lg text-gray-200 text-left w-full max-w-xs">
-                        El destinatario no es un amigo.
+                        Busca un usuario para transferir BTC:
                     </p>
+                    <div className="flex flex-col space-y-4 w-full max-w-xs">
+                        <input
+                            type="text"
+                            placeholder="Buscar usuario..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-200 px-4 py-2 rounded-xl shadow-md"
+                        />
+                        <button
+                            onClick={handleSearch}
+                            className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-xl shadow-md transition transform hover:scale-110 w-full"
+                        >
+                            Buscar
+                        </button>
+                    </div>
+                    {searchResults.length > 0 && (
+                        <div className="w-full max-w-xs mt-4">
+                            {searchResults.map((user) => (
+                                <div key={user.id} className="flex justify-between items-center mb-4 p-4 bg-gray-100 dark:bg-gray-800 rounded-xl shadow-lg">
+                                    <div>
+                                        <p className="text-gray-700 dark:text-gray-400">Name: {user.name}</p>
+                                        <p className="text-gray-900 dark:text-gray-200 font-semibold">Username: {user.username}</p>
+                                        <p className="text-gray-700 dark:text-gray-400">{user.email}</p>
+                                        <p className="text-gray-700 dark:text-gray-400 flex items-center">
+                                            {formatPublicAddress(user.public_address)}
+                                            <button
+                                                onClick={() => showFullAddress(user.public_address)}
+                                                className="ml-2 text-blue-400 hover:text-blue-300"
+                                            >
+                                                <Image src="/eye.svg" width={25} height={25} alt="Eye" className="filter invert dark:filter-none" />
+                                            </button>
+                                        </p>
+                                        <button
+                                            onClick={() => handleTransferBTC(user.id)}
+                                            className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-xl shadow-md transition transform hover:scale-110"
+                                        >
+                                            Transferir BTC
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
             )}
             <Menu />

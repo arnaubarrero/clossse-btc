@@ -82,7 +82,7 @@ export default function Home() {
                                             <span className="text-gray-600 dark:text-gray-400">{user.email}</span>
                                         </div>
                                         {user.is_friend ? (
-                                            <span className="text-green-500">✓ Ya son amigos</span>
+                                            <span className="text-green-500"><Image src="/user-check.svg" width={25} height={25} alt="Add User" /></span>
                                         ) : (
                                             <button onClick={() => handleAddFriend(user.id)} className="p-2 bg-green-500 rounded-lg hover:bg-green-600 transition duration-300" >
                                                 <Image src="/user-plus.svg" width={25} height={25} alt="Add User" className="filter dark:filter-none" />
