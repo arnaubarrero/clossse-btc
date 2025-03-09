@@ -1,7 +1,7 @@
 "use client";
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, use } from 'react';
-import { getUserInfo } from '../../../plugins/communicationManager';
+import { getUserInfo, getUserInfoById } from '../../../plugins/communicationManager';
 
 export default function SendPage({ params }) {
     const router = useRouter();
@@ -10,20 +10,27 @@ export default function SendPage({ params }) {
     const [loading, setLoading] = useState(true);
     const [userInfo, setUserInfo] = useState(null);
     const [friendInfo, setFriendInfo] = useState(null);
-    
+    const [isFriend, setIsFriend] = useState(false); // Estado para saber si es amigo
+
     useEffect(() => {
         if (!slug) return;
 
-        const fetchUserInfo = async () => {
+        const fetchData = async () => {
             try {
-                const data = await getUserInfo();
-                setUserInfo(data);
+                // Obtener la información del usuario actual
+                const currentUserInfo = await getUserInfo();
+                setUserInfo(currentUserInfo);
 
-                const friend = data.friends.find((friend) => friend.id === parseInt(slug));
+                // Verificar si el usuario con el ID de la URL es amigo
+                const friend = currentUserInfo.friends.find((friend) => friend.id === parseInt(slug));
                 if (friend) {
                     setFriendInfo(friend);
+                    setIsFriend(true);
                 } else {
-                    setError('Este usuario no es tu amigo.');
+                    // Si no es amigo, obtener la información del usuario por su ID
+                    const userData = await getUserInfoById(slug);
+                    setFriendInfo(userData);
+                    setIsFriend(false);
                 }
             } catch (err) {
                 setError(err.message);
@@ -32,7 +39,7 @@ export default function SendPage({ params }) {
             }
         };
 
-        fetchUserInfo();
+        fetchData();
     }, [slug]);
 
     if (loading) {
@@ -46,18 +53,14 @@ export default function SendPage({ params }) {
     return (
         <div>
             <h1>Enviar a Usuario con ID: {slug}</h1>
-            {friendInfo ? (
+            {friendInfo && (
                 <div>
-                    <h2>Este usuario es tu amigo.</h2>
+                    <h2>{isFriend ? 'Este usuario es tu amigo.' : 'Este usuario no es tu amigo.'}</h2>
                     <p>Nombre: {friendInfo.name}</p>
                     <p>Apellidos: {friendInfo.apellidos}</p>
                     <p>Email: {friendInfo.email}</p>
                     <p>Dirección Pública: {friendInfo.public_address}</p>
                     <p>Username: {friendInfo.username}</p>
-                </div>
-            ) : (
-                <div>
-                    <h2>Este usuario no es tu amigo.</h2>
                 </div>
             )}
         </div>

@@ -2,6 +2,7 @@
     namespace App\Http\Controllers;
     use Illuminate\Http\Request;
     use App\Models\Friendship;
+    use App\Models\User;
 
     class FriendshipController extends Controller {
         public function addFriend(Request $request) {
@@ -30,5 +31,23 @@
             ]);
 
             return response()->json(['message' => 'Amigo agregado correctamente']);
+        }
+
+        public function getUserInfo($id) {
+            $user = User::find($id);
+    
+            if (!$user) {
+                return response()->json(['message' => 'Usuario no encontrado'], 404);
+            }
+    
+            $publicAddress = $user->wallet ? $user->wallet->public_address : null;
+    
+            return response()->json([
+                'name' => $user->name,
+                'apellidos' => $user->apellidos,
+                'email' => $user->email,
+                'username' => $user->username,
+                'public_address' => $publicAddress,
+            ]);
         }
     }

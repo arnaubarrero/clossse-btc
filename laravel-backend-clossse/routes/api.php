@@ -29,16 +29,14 @@ Route::middleware('auth:sanctum')->get('/search', function (Request $request) {
     ]);
 
     $query = $request->input('query');
-    $user = $request->user(); // Obtén el usuario autenticado
+    $user = $request->user();
 
-    // Busca usuarios que coincidan con la consulta
     $results = DB::table('users')
         ->where('username', 'like', "%{$query}%")
         ->orWhere('email', 'like', "%{$query}%")
         ->select('id', 'username', 'email')
         ->get();
 
-    // Verifica si cada usuario en los resultados es amigo del usuario autenticado
     $results = $results->map(function ($userResult) use ($user) {
         $isFriend = DB::table('friendships')
             ->where(function ($query) use ($user, $userResult) {
@@ -51,7 +49,6 @@ Route::middleware('auth:sanctum')->get('/search', function (Request $request) {
             })
             ->exists();
 
-        // Agrega el campo `is_friend` al resultado
         $userResult->is_friend = $isFriend;
         return $userResult;
     });
@@ -62,3 +59,5 @@ Route::middleware('auth:sanctum')->get('/search', function (Request $request) {
 Route::middleware('auth:sanctum')->post('/add-friend', [FriendshipController::class, 'addFriend']);
 
 Route::middleware('auth:sanctum')->post('/update-username', [LoginRegisterController::class, 'updateUsername']);
+
+Route::get('/user-info/{id}', [FriendshipController::class, 'getUserInfo']);

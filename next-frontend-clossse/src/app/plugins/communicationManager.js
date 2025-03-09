@@ -125,6 +125,34 @@ export const getUserInfo = async () => {
     }
 };
 
+export const getUserInfoById = async (userId) => {
+    const token = localStorage.getItem('Login Token');
+
+    if (!token) {
+        throw new Error('No hay token de autenticación.');
+    }
+
+    try {
+        const response = await fetch(`${Host}/user-info/${userId}`, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error('Error al obtener la información del usuario.');
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error en getUserInfoById:', error);
+        throw error;
+    }
+};
+
 // ========= LOGOUT =====================
 export const logout = async () => {
     try {
