@@ -10,7 +10,7 @@ export default function SendPage({ params }) {
     const [loading, setLoading] = useState(true);
     const [userInfo, setUserInfo] = useState(null);
     const [friendInfo, setFriendInfo] = useState(null);
-
+    
     useEffect(() => {
         if (!slug) return;
 
@@ -18,11 +18,12 @@ export default function SendPage({ params }) {
             try {
                 const data = await getUserInfo();
                 setUserInfo(data);
+
                 const friend = data.friends.find((friend) => friend.id === parseInt(slug));
                 if (friend) {
                     setFriendInfo(friend);
                 } else {
-                    setError('Amigo no encontrado');
+                    setError('Este usuario no es tu amigo.');
                 }
             } catch (err) {
                 setError(err.message);
@@ -45,14 +46,18 @@ export default function SendPage({ params }) {
     return (
         <div>
             <h1>Enviar a Usuario con ID: {slug}</h1>
-            {friendInfo && (
+            {friendInfo ? (
                 <div>
-                    <h2>Información del Amigo:</h2>
+                    <h2>Este usuario es tu amigo.</h2>
                     <p>Nombre: {friendInfo.name}</p>
                     <p>Apellidos: {friendInfo.apellidos}</p>
                     <p>Email: {friendInfo.email}</p>
                     <p>Dirección Pública: {friendInfo.public_address}</p>
                     <p>Username: {friendInfo.username}</p>
+                </div>
+            ) : (
+                <div>
+                    <h2>Este usuario no es tu amigo.</h2>
                 </div>
             )}
         </div>

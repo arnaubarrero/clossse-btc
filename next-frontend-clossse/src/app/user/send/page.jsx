@@ -43,7 +43,7 @@ export default function Home() {
     };
 
     const handleTransferBTC = (friendId) => {
-        router.push(`/user/send/${friendId}`); // Redirigir a la ruta dinámica
+        router.push(`/user/send/${friendId}`);
     };
 
     useEffect(() => {
@@ -100,7 +100,7 @@ export default function Home() {
                                             </button>
                                         </p>
                                         <button
-                                            onClick={() => handleTransferBTC(friend.id)} // Redirigir al hacer clic
+                                            onClick={() => handleTransferBTC(friend.id)}
                                             className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-xl shadow-md transition transform hover:scale-110"
                                         >
                                             Transferir BTC
