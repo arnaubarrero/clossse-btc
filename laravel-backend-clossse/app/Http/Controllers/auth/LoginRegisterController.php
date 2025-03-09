@@ -161,6 +161,7 @@
         
             $friends = $allFriends->map(function ($friend) {
                 return [
+                    'id' => $friend->id,
                     'name' => $friend->name,
                     'apellidos' => $friend->apellidos,
                     'username' => $friend->username,

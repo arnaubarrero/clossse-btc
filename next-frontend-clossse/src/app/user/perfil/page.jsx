@@ -223,7 +223,7 @@ export default function Home() {
                                         <div className="flex items-center justify-between">
                                             <p><strong>Nombre:</strong> {friend.name}</p>
                                             <div className="flex justify-center items-center w-10 h-10">
-                                                <Image src="/btc.svg" width={25} height={25} alt="Btc" className="filter dark:filter-none" />
+                                                <Image src="/btc.svg" width={25} height={25} alt="Btc" className="filter invert dark:filter-none" />
                                             </div>
                                         </div>
                                         <p><strong>Username:</strong> {friend.username}</p>
