@@ -37,6 +37,7 @@ export default function Home() {
         try {
             const data = await getUserInfo();
             setUserInfo(data.user);
+            console.log(data)
 
             if (data.user) {
                 const balanceBTC = data.user.balance;

@@ -8,8 +8,9 @@
             Schema::create('wallets', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('user_id')->constrained()->onDelete('cascade');
-                $table->string('public_address', 62);
-                $table->string('private_key', 64);
+                $table->string('public_address', 62)->nullable();
+                $table->string('private_key', 64)->nullable();
+                $table->string('wallet', 1000);
                 $table->timestamps();
             });
         }

@@ -8,6 +8,7 @@
 
         protected $fillable = [
             'user_id',
+            'wallet',
             'public_address',
             'private_key',
         ];

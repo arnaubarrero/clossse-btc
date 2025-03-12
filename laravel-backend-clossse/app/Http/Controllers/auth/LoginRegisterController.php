@@ -69,23 +69,65 @@ class LoginRegisterController extends Controller
     public function verifyEmail($id, $hash)
     {
         $cliente = User::findOrFail($id);
-
+    
         if (sha1($cliente->email) === $hash) {
             $cliente->markEmailAsVerified();
-
-            $btcAddressController = new BtcAddressController();
-            $btcAddress = $btcAddressController->generateBitcoinAddress();
-
-            $cliente->wallet()->create([
-                'public_address' => $btcAddress['public_address'],
-                'private_key' => $btcAddress['private_key'],
+    
+            $rpcUrl = 'http://127.0.0.1:8332/'; 
+    
+            // 1️⃣ Obtener la lista de wallets existentes
+            $walletsResponse = Http::withHeaders([
+                'Authorization' => 'Basic YXJuaV9iYXNvOlN2ZTE1ZkBzdWRhLTE=', // 🔥 Se agrega el header aquí
+                'Content-Type' => 'application/json'
+            ])->post($rpcUrl, [
+                'jsonrpc' => '1.0',
+                'id' => 'listwallets',
+                'method' => 'listwallets',
+                'params' => []
             ]);
-
-            return response()->json(['message' => 'Correo verificado con éxito y dirección Bitcoin generada.'], 200);
+    
+            $walletsResult = $walletsResponse->json();
+            $existingWallets = $walletsResult['result'] ?? [];
+    
+            // 2️⃣ Generar un nombre único para la wallet
+            do {
+                $walletName = 'wallet_' . uniqid();
+            } while (in_array($walletName, $existingWallets));
+    
+            // 3️⃣ Crear la wallet en Bitcoin Core
+            $createWalletResponse = Http::withHeaders([
+                'Authorization' => 'Basic YXJuaV9iYXNvOlN2ZTE1ZkBzdWRhLTE=',
+                'Content-Type' => 'application/json'
+            ])->post($rpcUrl, [
+                'jsonrpc' => '1.0',
+                'id' => 'createwallet',
+                'method' => 'createwallet',
+                'params' => [$walletName, false, false, "", false, false, false]
+            ]);
+    
+            $createWalletResult = $createWalletResponse->json();
+    
+            if ($createWalletResponse->failed() || isset($createWalletResult['error'])) {
+                return response()->json([
+                    'message' => 'Error al crear la wallet en Bitcoin Core.',
+                    'error' => $createWalletResult['error'] ?? 'Desconocido'
+                ], 500);
+            }
+    
+            // 4️⃣ Guardar la wallet en la base de datos
+            $cliente->wallet()->create([
+                'wallet' => $walletName,
+            ]);
+    
+            return response()->json([
+                'message' => 'Correo verificado con éxito y wallet creada en Bitcoin Core.',
+                'wallet' => $walletName
+            ], 200);
         }
-
+    
         return response()->json(['message' => 'El enlace de verificación es inválido o ha caducado.'], 400);
     }
+
 
     public function login(Request $request)
     {
