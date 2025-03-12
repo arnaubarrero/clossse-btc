@@ -37,7 +37,7 @@ export default function Home() {
         try {
             const data = await getUserInfo();
             setUserInfo(data.user);
-            console.log(data)
+            console.log(data);
 
             if (data.user) {
                 const balanceBTC = data.user.balance;
@@ -56,7 +56,7 @@ export default function Home() {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+            <div className="min-h-screen flex items-center justify-center bg-[#f6faff] dark:bg-gray-900">
                 <p className="text-gray-900 dark:text-white">Loading user information...</p>
             </div>
         );
@@ -64,25 +64,25 @@ export default function Home() {
 
     if (error) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+            <div className="min-h-screen flex items-center justify-center bg-[#f6faff] dark:bg-gray-900">
                 <p className="text-red-500">Error: {error}</p>
             </div>
         );
     }
 
     return (
-        <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'} transition-colors duration-300`}>
+        <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-[#f6faff] text-gray-900'} transition-colors duration-300`}>
             <div className="container mx-auto p-4">
-                <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent mb-8">
+                <h1 className="text-4xl font-bold bg-gradient-to-r from-[#008080] to-[#7FFFD4] bg-clip-text text-transparent mb-8">
                     Welcome, {userInfo ? `${userInfo.name}` : 'User'}
                 </h1>
 
                 {userInfo && (
                     <>
                         <div className="mb-8 p-6 text-center">
-                            <h2 className="text-2xl font-semibold mb-4">BTC Balance</h2>
+                            <h2 className="text-4xl font-semibold mb-4">BTC Balance</h2>
                             <div className="text-center">
-                                <p className="text-3xl font-bold">{btcBalance ?? 'Loading...'} ₿</p>
+                                <p className="text-5xl font-bold">{btcBalance ?? 'Loading...'} ₿</p>
                             </div>
                         </div>
 

@@ -9,7 +9,7 @@ export function Menu() {
 
     return (
         <>
-            <div className="w-[90vw] max-w-[800px] bg-gradient-to-r from-blue-900 to-gray-900 fixed bottom-[20px] left-1/2 transform -translate-x-1/2 rounded-3xl shadow-lg">
+            <div className="w-[90vw] bg-gradient-to-r from-[#58d6ac] to-[#008080] fixed bottom-[20px] left-1/2 transform -translate-x-1/2 rounded-3xl shadow-lg">
                 <div className="flex justify-around items-center p-3">
                     <Link href="/">
                         <div className="rounded-full transition duration-300">
