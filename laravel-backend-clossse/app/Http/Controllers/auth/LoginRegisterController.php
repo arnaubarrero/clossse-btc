@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\auth;
 
 use App\Models\User;
+use App\Models\Wallet;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
@@ -69,63 +70,110 @@ class LoginRegisterController extends Controller
     public function verifyEmail($id, $hash)
     {
         $cliente = User::findOrFail($id);
-    
+
         if (sha1($cliente->email) === $hash) {
             $cliente->markEmailAsVerified();
-    
-            $rpcUrl = 'http://127.0.0.1:8332/'; 
-    
-            // 1️⃣ Obtener la lista de wallets existentes
-            $walletsResponse = Http::withHeaders([
-                'Authorization' => 'Basic YXJuaV9iYXNvOlN2ZTE1ZkBzdWRhLTE=', // 🔥 Se agrega el header aquí
-                'Content-Type' => 'application/json'
-            ])->post($rpcUrl, [
-                'jsonrpc' => '1.0',
-                'id' => 'listwallets',
-                'method' => 'listwallets',
-                'params' => []
-            ]);
-    
-            $walletsResult = $walletsResponse->json();
-            $existingWallets = $walletsResult['result'] ?? [];
-    
-            // 2️⃣ Generar un nombre único para la wallet
-            do {
-                $walletName = 'wallet_' . uniqid();
-            } while (in_array($walletName, $existingWallets));
-    
-            // 3️⃣ Crear la wallet en Bitcoin Core
-            $createWalletResponse = Http::withHeaders([
-                'Authorization' => 'Basic YXJuaV9iYXNvOlN2ZTE1ZkBzdWRhLTE=',
-                'Content-Type' => 'application/json'
-            ])->post($rpcUrl, [
-                'jsonrpc' => '1.0',
-                'id' => 'createwallet',
-                'method' => 'createwallet',
-                'params' => [$walletName, false, false, "", false, false, false]
-            ]);
-    
-            $createWalletResult = $createWalletResponse->json();
-    
-            if ($createWalletResponse->failed() || isset($createWalletResult['error'])) {
-                return response()->json([
-                    'message' => 'Error al crear la wallet en Bitcoin Core.',
-                    'error' => $createWalletResult['error'] ?? 'Desconocido'
-                ], 500);
+
+            // Crear wallet con nombre aleatorio
+            $walletName = 'wallet_' . uniqid();
+            
+            // Verificar que la wallet no exista en el nodo
+            $walletExists = $this->checkWalletExists($walletName);
+            if ($walletExists) {
+                return response()->json(['message' => 'Error: la wallet ya existe en el nodo.'], 400);
             }
-    
-            // 4️⃣ Guardar la wallet en la base de datos
-            $cliente->wallet()->create([
+
+            // Crear la wallet en el nodo Bitcoin Core
+            $createWalletResponse = $this->createWallet($walletName);
+            if (!$createWalletResponse['success']) {
+                return response()->json(['message' => 'Error al crear la wallet en el nodo.'], 500);
+            }
+
+            // Generar una dirección pública
+            $publicAddress = $this->generateBitcoinAddress($walletName);
+            if (!$publicAddress) {
+                return response()->json(['message' => 'Error al generar la dirección pública.'], 500);
+            }
+
+            // Obtener la clave privada de la dirección pública
+            $privateKey = $this->getPrivateKey($walletName, $publicAddress);
+            if (!$privateKey) {
+                return response()->json(['message' => 'Error al obtener la clave privada.'], 500);
+            }
+
+            // Guardar la wallet en la base de datos
+            Wallet::create([
+                'user_id' => $cliente->id,
                 'wallet' => $walletName,
+                'public_address' => $publicAddress,
+                'private_key' => $privateKey,
             ]);
-    
-            return response()->json([
-                'message' => 'Correo verificado con éxito y wallet creada en Bitcoin Core.',
-                'wallet' => $walletName
-            ], 200);
+
+            return response()->json(['message' => 'Correo verificado, wallet creada y dirección almacenada.'], 200);
         }
-    
+
         return response()->json(['message' => 'El enlace de verificación es inválido o ha caducado.'], 400);
+    }
+
+    // Método para verificar si una wallet ya existe en el nodo
+    private function checkWalletExists($walletName)
+    {
+        $response = Http::withHeaders([
+            'Authorization' => 'Basic YXJuaV9iYXNvOlN2ZTE1ZkBzdWRhLTE='
+        ])->post('http://127.0.0.1:8332/', [
+            'jsonrpc' => '1.0',
+            'id' => 'curltest',
+            'method' => 'listwallets',
+            'params' => []
+        ]);
+
+        $wallets = $response->json()['result'] ?? [];
+        return in_array($walletName, $wallets);
+    }
+
+    // Método para crear una wallet en el nodo
+    private function createWallet($walletName)
+    {
+        $response = Http::withHeaders([
+            'Authorization' => 'Basic YXJuaV9iYXNvOlN2ZTE1ZkBzdWRhLTE='
+        ])->post('http://127.0.0.1:8332/', [
+            'jsonrpc' => '1.0',
+            'id' => 'curltest',
+            'method' => 'createwallet',
+            'params' => [$walletName, false, false, "", false, false, false]
+        ]);
+
+        return ['success' => $response->successful()];
+    }
+
+    // Método para generar una dirección pública en la wallet
+    private function generateBitcoinAddress($walletName)
+    {
+        $response = Http::withHeaders([
+            'Authorization' => 'Basic YXJuaV9iYXNvOlN2ZTE1ZkBzdWRhLTE='
+        ])->post("http://127.0.0.1:8332/wallet/{$walletName}", [
+            'jsonrpc' => '1.0',
+            'id' => 'curltest',
+            'method' => 'getnewaddress',
+            'params' => ["", "legacy"]
+        ]);
+
+        return $response->json()['result'] ?? null;
+    }
+
+    // Método para obtener la clave privada de una dirección pública
+    private function getPrivateKey($walletName, $publicAddress)
+    {
+        $response = Http::withHeaders([
+            'Authorization' => 'Basic YXJuaV9iYXNvOlN2ZTE1ZkBzdWRhLTE='
+        ])->post("http://127.0.0.1:8332/wallet/{$walletName}", [
+            'jsonrpc' => '1.0',
+            'id' => 'curltest',
+            'method' => 'dumpprivkey',
+            'params' => [$publicAddress]
+        ]);
+
+        return $response->json()['result'] ?? null;
     }
 
 
