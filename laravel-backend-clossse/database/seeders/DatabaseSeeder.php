@@ -13,6 +13,7 @@
                     'name' => 'Arnau', 
                     'apellidos' => 'Barrero', 
                     'email' => 'arnau.baso@gmail.com', 
+                    'email_verified_at' => now(),
                     'username' => 'arni_baso', 
                     'password' => Hash::make('Arnau_2004')
                 ],
