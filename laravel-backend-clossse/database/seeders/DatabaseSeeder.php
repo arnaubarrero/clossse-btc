@@ -24,9 +24,9 @@
 
                 Wallet::create([
                     'user_id' => $user->id,
-                    'public_address' => '1KXGrLaKRgaHgFmzJ9LvrSXduCWXr2Kqcg',
-                    'private_key' => 'KyQcerULBQQCbVQHrrvFhAm49L9LSPKNFBForysMcAkdSiSC7fX4',
-                    'wallet' => 'wallet_67d1d4c1f3a6d'
+                    'public_address' => '18odWv8uQfPzKzjdCJZoGM4pDi7sp2quUH',
+                    'private_key' => 'KxmHq8CJP34RRtkQRm7kAz7MM47MK7moxokcKK8jtP8v8e3MaJGY',
+                    'wallet' => 'wallet_67d34af552edc'
                 ]);
             }
         }
