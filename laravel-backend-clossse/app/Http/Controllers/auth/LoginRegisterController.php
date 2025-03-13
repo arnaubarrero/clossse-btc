@@ -245,6 +245,16 @@ class LoginRegisterController extends Controller
         ], 200);
     }
 
+    // MODIFICAR FUNCION
+    // Hacer fetch a http://127.0.0.1:8332/wallet/${wallet}
+    // pasar como cuerpo de texto 
+    // {
+    //     "jsonrpc": "1.0",
+    //     "id": "curltest",
+    //     "method": "listtransactions",
+    //     "params": ["*", 100, 0, true]
+    //   }
+      
     public function getUserInfo(Request $request) {
         $user = $request->user();
 
