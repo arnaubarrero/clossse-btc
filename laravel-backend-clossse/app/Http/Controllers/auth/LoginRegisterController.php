@@ -76,7 +76,7 @@ class LoginRegisterController extends Controller
 
             // Crear wallet con nombre aleatorio
             $walletName = 'wallet_' . uniqid();
-            
+
             // Verificar que la wallet no exista en el nodo
             $walletExists = $this->checkWalletExists($walletName);
             if ($walletExists) {
@@ -245,90 +245,27 @@ class LoginRegisterController extends Controller
         ], 200);
     }
 
-    // MODIFICAR FUNCION
-    // Hacer fetch a http://127.0.0.1:8332/wallet/${wallet}
-    // pasar como cuerpo de texto 
-    // {
-    //     "jsonrpc": "1.0",
-    //     "id": "curltest",
-    //     "method": "listtransactions",
-    //     "params": ["*", 100, 0, true]
-    //   }
-      
-    public function getUserInfo(Request $request) {
-        $user = $request->user();
+    public function getUserInfo(Request $request)
+    {
+        try {
+            $user = $request->user();
 
-        if (!$user) {
+            if (!$user) {
+                return response()->json(['error' => 'Usuario no autenticado'], 401);
+            }
+
+            $wallet = $user->wallet;
+
+            if (!$wallet) {
+                return response()->json(['error' => 'Wallet no encontrada'], 404);
+            }
+
             return response()->json([
-                'message' => 'Usuario no autenticado',
-            ], 401);
+                'wallet' => $wallet->wallet,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Error interno del servidor'], 500);
         }
-
-        $publicAddress = $user->wallet ? $user->wallet->public_address : null;
-
-        $balance = 0;
-        if ($publicAddress) {
-            $balanceResponse = Http::get("https://blockstream.info/api/address/{$publicAddress}");
-            if ($balanceResponse->successful()) {
-                $data = $balanceResponse->json();
-                $balance = $data['chain_stats']['funded_txo_sum'] - $data['chain_stats']['spent_txo_sum'];
-            }
-        }
-
-        $transactions = [];
-        if ($publicAddress) {
-            $transactionsResponse = Http::get("https://blockstream.info/api/address/{$publicAddress}/txs");
-            if ($transactionsResponse->successful()) {
-                $transactionsData = $transactionsResponse->json();
-                $transactions = array_map(function ($tx) use ($publicAddress) {
-                    $isSent = collect($tx['vin'])->contains(function ($input) use ($publicAddress) {
-                        return isset($input['prevout']['scriptpubkey_address']) &&
-                            $input['prevout']['scriptpubkey_address'] === $publicAddress;
-                    });
-
-                    $amount = collect($tx['vout'])->sum(function ($output) {
-                        return $output['value'];
-                    });
-
-                    $amountBTC = $amount / 100000000;
-
-                    $date = isset($tx['status']['block_time']) ?
-                        date('Y-m-d H:i:s', $tx['status']['block_time']) :
-                        'Pending';
-
-                    return [
-                        'type' => $isSent ? 'Sent' : 'Received',
-                        'amount' => $amountBTC,
-                        'date' => $date,
-                    ];
-                }, $transactionsData);
-            }
-        }
-
-        $allFriends = $user->allFriends();
-        $friends = $allFriends->map(function ($friend) {
-            return [
-                'id' => $friend->id,
-                'name' => $friend->name,
-                'apellidos' => $friend->apellidos,
-                'username' => $friend->username,
-                'email' => $friend->email,
-                'public_address' => $friend->wallet ? $friend->wallet->public_address : null,
-            ];
-        });
-
-        return response()->json([
-            'user' => [
-                'name' => $user->name,
-                'apellidos' => $user->apellidos,
-                'username' => $user->username,
-                'email' => $user->email,
-                'public_address' => $publicAddress,
-                'balance' => $balance / 100000000, // Convertir a BTC
-            ],
-            'friends' => $friends,
-            'transactions' => $transactions, // Historial de transacciones
-        ], 200);
     }
 
     public function updateUsername(Request $request)
