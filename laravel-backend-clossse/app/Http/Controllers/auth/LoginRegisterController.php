@@ -74,34 +74,28 @@ class LoginRegisterController extends Controller
         if (sha1($cliente->email) === $hash) {
             $cliente->markEmailAsVerified();
 
-            // Crear wallet con nombre aleatorio
             $walletName = 'wallet_' . uniqid();
 
-            // Verificar que la wallet no exista en el nodo
             $walletExists = $this->checkWalletExists($walletName);
             if ($walletExists) {
                 return response()->json(['message' => 'Error: la wallet ya existe en el nodo.'], 400);
             }
 
-            // Crear la wallet en el nodo Bitcoin Core
             $createWalletResponse = $this->createWallet($walletName);
             if (!$createWalletResponse['success']) {
                 return response()->json(['message' => 'Error al crear la wallet en el nodo.'], 500);
             }
 
-            // Generar una dirección pública
             $publicAddress = $this->generateBitcoinAddress($walletName);
             if (!$publicAddress) {
                 return response()->json(['message' => 'Error al generar la dirección pública.'], 500);
             }
 
-            // Obtener la clave privada de la dirección pública
             $privateKey = $this->getPrivateKey($walletName, $publicAddress);
             if (!$privateKey) {
                 return response()->json(['message' => 'Error al obtener la clave privada.'], 500);
             }
 
-            // Guardar la wallet en la base de datos
             Wallet::create([
                 'user_id' => $cliente->id,
                 'wallet' => $walletName,
@@ -260,8 +254,61 @@ class LoginRegisterController extends Controller
                 return response()->json(['error' => 'Wallet no encontrada'], 404);
             }
 
+            $bitcoinCoreUrl = 'http://127.0.0.1:8332/wallet/' . $wallet->wallet;
+            $credentials = 'YXJuaV9iYXNvOlN2ZTE1ZkBzdWRhLTE=';
+
+            $makeRequest = function ($url, $payload) use ($credentials) {
+                return Http::withHeaders([
+                    'Content-Type' => 'application/json',
+                    'Authorization' => 'Basic ' . $credentials,
+                ])->post($url, $payload);
+            };
+
+            $listTransactionsPayload = [
+                "jsonrpc" => "1.0",
+                "id" => "curltest",
+                "method" => "listtransactions",
+                "params" => ["*", 99999999, 0, true]
+            ];
+
+            $response = $makeRequest($bitcoinCoreUrl, $listTransactionsPayload);
+
+            if ($response->failed() || isset($response->json()['error'])) {
+                return response()->json(['error' => 'Error al obtener transacciones'], 500);
+            }
+
+            $data = $response->json();
+
+            if (!isset($data['result'])) {
+                return response()->json(['error' => 'No se encontraron transacciones'], 404);
+            }
+
+            $receivedTransactions = [];
+            $sentTransactions = [];
+            $pendingTransactions = [];
+            $balance = 0;
+
+            foreach ($data['result'] as $transaction) {
+                if ($transaction['category'] === 'receive') {
+                    if ($transaction['confirmations'] === 0) {
+                        $pendingTransactions[] = $transaction;
+                    } else {
+                        $receivedTransactions[] = $transaction;
+                        $balance += $transaction['amount'];
+                    }
+                } elseif ($transaction['category'] === 'send') {
+                    $sentTransactions[] = $transaction;
+                    if (isset($transaction['fee'])) {
+                        $balance += $transaction['fee'];
+                    }
+                }
+            }
+
             return response()->json([
-                'wallet' => $wallet->wallet,
+                'balance' => $balance,
+                'receivedTransactions' => $receivedTransactions,
+                'sentTransactions' => $sentTransactions,
+                'pendingTransactions' => $pendingTransactions,
             ]);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Error interno del servidor'], 500);
