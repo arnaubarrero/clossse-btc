@@ -1,211 +1,121 @@
-'use client';
-
-import Swal from 'sweetalert2';
-import Image from 'next/image';
-import CryptoJS from 'crypto-js';
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+"use client";
+import { useState } from 'react';
 import { Menu } from '../../components/menu/menu';
-import { getUserInfo, searchUsers } from '../../plugins/communicationManager';
+import FriendTrue from '../../components/send/friendTrue';
+// import FriendFalse from '../../components/send/friendFalse';
+import NonUserForm from '../../components/send/noUserSend';
 
-export default function Home() {
-    const router = useRouter();
-    const [isFriend, setIsFriend] = useState(null);
-    const [userInfo, setUserInfo] = useState(null);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [searchResults, setSearchResults] = useState([]);
+export function App() {
+    const [currentStep, setCurrentStep] = useState(0); // Controla el paso actual
+    const [isUser, setIsUser] = useState(false); // Estado para saber si es usuario
+    const [isFriend, setIsFriend] = useState(null); // Estado para saber si es amigo
 
-    const formatPublicAddress = (address) => {
-        if (!address) return '';
-        const firstFive = address.slice(0, 5);
-        const lastEight = address.slice(-8);
-        return `${firstFive}...${lastEight}`;
+    // Función para manejar el clic en "Sí" (es usuario)
+    const handleYesClick = () => {
+        setIsUser(true); // Marcar como usuario
+        setCurrentStep(1); // Avanzar al siguiente paso (preguntar si es amigo)
     };
 
-    const showFullAddress = (address) => {
-        Swal.fire({
-            title: 'Dirección completa',
-            text: address,
-            icon: 'info',
-            confirmButtonText: 'Cerrar',
-        });
+    // Función para manejar el clic en "No" (no es usuario)
+    const handleNoClick = () => {
+        setIsUser(false); // Marcar como no usuario
+        setCurrentStep(3); // Saltar directamente al formulario de no usuario
     };
 
-    const handleFriendSelection = async (isFriend) => {
-        if (isFriend) {
-            setIsFriend(true);
-            try {
-                const info = await getUserInfo();
-                setUserInfo(info);
-            } catch (error) {
-                console.error('Error al obtener la información del usuario:', error);
-            }
+    // Función para manejar la respuesta sobre si es amigo
+    const handleFriendClick = (friendStatus) => {
+        setIsFriend(friendStatus); // Guardar la respuesta
+        if (friendStatus) {
+            setCurrentStep(2); // Si es amigo, ir al listado de amigos
         } else {
-            setIsFriend(false);
+            setCurrentStep(4); // Si no es amigo, ir al apartado "No es amigo"
         }
     };
 
-    const handleTransferBTC = async (userId) => {
-        const encryptedPin = localStorage.getItem('EncryptedPIN');
-
-        if (!encryptedPin) {
-            Swal.fire({
-                title: 'Error',
-                text: 'No se encontró un PIN registrado. Por favor, configura un PIN primero.',
-                icon: 'error',
-                confirmButtonText: 'Cerrar',
-            });
-            return;
-        }
-
-        const { value: pin } = await Swal.fire({
-            title: 'Ingresa tu PIN',
-            input: 'password',
-            inputAttributes: {
-                maxlength: 4,
-                autocapitalize: 'off',
-                autocorrect: 'off',
-            },
-            inputPlaceholder: 'Ingresa tu PIN de 4 dígitos',
-            showCancelButton: true,
-            confirmButtonText: 'Confirmar',
-            cancelButtonText: 'Cancelar',
-            inputValidator: (value) => {
-                if (!value) { return 'Debes ingresar un PIN'; }
-                if (value.length !== 4) { return 'El PIN debe tener 4 dígitos'; }
-            },
-        });
-
-        if (pin) {
-            const decryptedPin = CryptoJS.AES.decrypt(
-                encryptedPin,
-                'secret-key'
-            ).toString(CryptoJS.enc.Utf8);
-
-            if (pin === decryptedPin) {
-                const verificationTime = new Date().getTime();
-                localStorage.setItem('PINVerified', JSON.stringify({
-                    verified: true,
-                    timestamp: verificationTime,
-                }));
-
-                router.push(`/user/send/${userId}`);
-            } else {
-                Swal.fire({
-                    title: 'Error',
-                    text: 'PIN incorrecto. Inténtalo de nuevo.',
-                    icon: 'error',
-                    confirmButtonText: 'Cerrar',
-                });
-            }
+    // Función para volver atrás
+    const handleBackClick = () => {
+        if (currentStep === 4) {
+            // Si está en el apartado "No es amigo", volver al principio
+            setCurrentStep(0);
+        } else {
+            // En otros casos, retroceder un paso
+            setCurrentStep(prevStep => prevStep - 1);
         }
     };
 
-    const handleSearch = async () => {
-        try {
-            const results = await searchUsers(searchQuery);
-            setSearchResults(results);
-        } catch (error) {
-            console.error('Error al buscar usuarios:', error);
-            Swal.fire({
-                title: 'Error',
-                text: 'No se pudo realizar la búsqueda',
-                icon: 'error',
-                confirmButtonText: 'Cerrar',
-            });
-        }
-    };
+    // Definición de los pasos
+    const steps = [
+        // Paso 0: Pregunta inicial (¿Es usuario de "clossse"?)
+        <div key="step0" className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl p-8 mt-8">
+            <h1 className="text-3xl font-bold text-[#008080] dark:text-[#40E0D0] mb-8 text-center">
+                ¿Es usuario de "clossse"?
+            </h1>
+            <div className="flex gap-4 justify-center">
+                <button
+                    onClick={handleYesClick}
+                    className="px-8 py-3 bg-[#008080] hover:bg-[#006666] dark:bg-[#40E0D0] dark:hover:bg-[#30B0A0] text-white dark:text-gray-800 rounded-lg transition-colors duration-200 font-semibold">
+                    Sí
+                </button>
+                <button
+                    onClick={handleNoClick}
+                    className="px-8 py-3 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-lg transition-colors duration-200 font-semibold">
+                    No
+                </button>
+            </div>
+        </div>,
 
-    useEffect(() => {
-        const token = localStorage.getItem('Login Token');
-        if (!token) {
-            router.push('/user/login');
-        }
-    }, [router]);
+        // Paso 1: Pregunta si es amigo (solo si es usuario)
+        <div key="step1" className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl p-8 mt-8 text-center">
+            <h2 className="text-2xl font-bold text-[#008080] dark:text-[#40E0D0] mb-4">¿Es amigo?</h2>
+            <div className="flex gap-4 justify-center">
+                <button
+                    onClick={() => handleFriendClick(true)}
+                    className="px-8 py-3 bg-[#008080] hover:bg-[#006666] dark:bg-[#40E0D0] dark:hover:bg-[#30B0A0] text-white dark:text-gray-800 rounded-lg transition-colors duration-200 font-semibold">
+                    Sí
+                </button>
+                <button
+                    onClick={() => handleFriendClick(false)}
+                    className="px-8 py-3 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-lg transition-colors duration-200 font-semibold">
+                    No
+                </button>
+            </div>
+        </div>,
+
+        // Paso 2: Listado de amigos (solo si es usuario y amigo)
+        <div key="step2" className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl p-8 mt-8">
+            <FriendTrue />
+        </div>,
+
+        // Paso 3: Formulario para no usuarios
+        <div key="step3" className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl p-8 mt-8">
+            <NonUserForm />
+        </div>,
+
+        // Paso 4: Apartado "No es amigo"
+        <div key="step4" className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl p-8 mt-8">
+            {/* <FriendFalse /> */}
+        </div>
+    ];
 
     return (
-        <div className="min-h-screen bg-gradient-to-br dark:from-gray-900 dark:to-gray-800 p-6 text-white">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent"> Send <br /> Bitcoin </h1>
+        <div className="min-h-screen bg-gradient-to-br from-[#7FFFD4] to-[#40E0D0] dark:from-gray-900 dark:to-[#008080] transition-colors duration-300">
+            <main className="pt-20 px-4 max-w-7xl mx-auto">
+                {/* Mostrar el paso actual */}
+                {steps[currentStep]}
 
-            {isFriend === null ? (
-                <>
-                    <p className="mb-4 text-lg text-gray-900 dark:text-gray-50 text-left w-full max-w-xs">Is the recipient a friend?</p>
-                    <div className="flex flex-col h-[calc(80vh-8rem)] items-center justify-center">
-                        <div className="flex flex-col space-y-4 w-full max-w-xs">
-                            <button onClick={() => handleFriendSelection(true)} className="bg-blue-500 text-white px-6 py-3 shadow-md transition transform w-full" >
-                                Sí
-                            </button>
-                            <button onClick={() => handleFriendSelection(false)} className="bg-purple-500 text-white px-6 py-3 shadow-md transition transform w-full" >
-                                No
-                            </button>
-                        </div>
-                    </div>
-                </>
-            ) : isFriend ? (
-                <div className="flex flex-col items-center justify-center">
-                    <p className="mb-4 text-lg text-gray-200 text-left w-full max-w-xs">
-                        Select a friend to transfer BTC:
-                    </p>
-                    {userInfo && userInfo.friends && userInfo.friends.length > 0 ? (
-                        <div className="w-[100%]">
-                            {userInfo.friends.map((friend) => (
-                                <div key={friend.id} className="flex justify-between items-center mb-4 p-4 bg-gray-100 dark:bg-gray-800">
-                                    <div>
-                                        <p className="text-gray-700 dark:text-gray-400">Name: {friend.name}</p>
-                                        <p className="text-gray-900 dark:text-gray-200 font-semibold">Username: {friend.username}</p>
-                                        <p className="text-gray-700 dark:text-gray-400">{friend.email}</p>
-                                        <p className="text-gray-700 dark:text-gray-400 flex items-center">
-                                            {formatPublicAddress(friend.public_address)}
-                                            <button onClick={() => showFullAddress(friend.public_address)} className="ml-2 text-blue-400 hover:text-blue-300" >
-                                                <Image src="/eye.svg" width={25} height={25} alt="Eye" className="filter invert dark:filter-none" />
-                                            </button>
-                                        </p>
-                                        <button onClick={() => handleTransferBTC(friend.id)} className="bg-gradient-to-r from-blue-500 to-purple-600 mt-[20px] text-white px-4 py-1" >
-                                            Transfer Bitcoin
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <p className="text-gray-200">No tienes amigos registrados.</p>
-                    )}
-                </div>
-            ) : (
-                <div className="flex flex-col items-center justify-center">
-                    <p className="mb-4 text-lg text-gray-200 text-left w-full max-w-xs">
-                        Busca un usuario para transferir BTC:
-                    </p>
-                    <div className="flex flex-col space-y-4 w-full max-w-xs">
-                        <input type="text" placeholder="Buscar usuario..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="bg-gray-100 dark:bg-gray-800 outline-0 text-gray-900 dark:text-gray-200 px-4 py-2" />
-                        <button onClick={handleSearch} className="bg-gradient-to-r from-blue-500 to-purple-600 text-white py-2 w-full" >
-                            Buscar
+                {/* Botón para volver atrás (no se muestra en el paso 0) */}
+                {currentStep > 0 && (
+                    <div className="fixed top-1 left-1">
+                        <button onClick={handleBackClick} className="text-3xl px-8 py-3 text-gray-200">
+                            ←
                         </button>
                     </div>
-                    {searchResults.length > 0 && (
-                        <div className="w-full max-w-xs mt-4">
-                            {searchResults.map((user) => (
-                                <div key={user.id} className="flex justify-between items-center mb-4 p-4 bg-gray-100 dark:bg-gray-800">
-                                    <div className='w-[100%]'>
-                                        <p className="text-gray-900 dark:text-gray-200 font-semibold">Username: {user.username}</p>
-                                        <p className="text-gray-700 dark:text-gray-400">{user.email}</p>
-                                        <p className="text-gray-700 dark:text-gray-400 flex items-center">
-                                            {formatPublicAddress(user.public_address)}
-                                            <button onClick={() => showFullAddress(user.public_address)} className="ml-2 text-blue-400 hover:text-blue-300" >
-                                                <Image src="/eye.svg" width={25} height={25} alt="Eye" className="filter invert dark:filter-none" />
-                                            </button>
-                                        </p>
-                                        <button onClick={() => handleTransferBTC(user.id)} className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-1 mt-[20px]" >
-                                            Transferir BTC
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            )}
+                )}
+            </main>
+
             <Menu />
         </div>
     );
 }
+
+export default App;

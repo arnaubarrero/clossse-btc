@@ -17,6 +17,14 @@
                     'username' => 'arni_baso', 
                     'password' => Hash::make('Arnau_2004')
                 ],
+                [
+                    'name' => 'Ledger', 
+                    'apellidos' => 'Top', 
+                    'email' => 'ledger@gmail.com', 
+                    'email_verified_at' => now(),
+                    'username' => 'ledger_top', 
+                    'password' => Hash::make('Arnau_2004')
+                ],
             ];
 
             foreach ($users as $userData) {
