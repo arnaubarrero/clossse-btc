@@ -243,51 +243,68 @@ class LoginRegisterController extends Controller
     {
         try {
             $user = $request->user();
-
+    
             if (!$user) {
                 return response()->json(['error' => 'Usuario no autenticado'], 401);
             }
-
+    
             $wallet = $user->wallet;
-
+    
             if (!$wallet) {
                 return response()->json(['error' => 'Wallet no encontrada'], 404);
             }
-
-            $bitcoinCoreUrl = 'http://127.0.0.1:8332/wallet/' . $wallet->wallet;
+    
+            $bitcoinCoreUrl = 'http://127.0.0.1:8332';
             $credentials = 'YXJuaV9iYXNvOlN2ZTE1ZkBzdWRhLTE=';
-
+    
             $makeRequest = function ($url, $payload) use ($credentials) {
                 return Http::withHeaders([
                     'Content-Type' => 'application/json',
                     'Authorization' => 'Basic ' . $credentials,
                 ])->post($url, $payload);
             };
-
+    
+            // Intentar cargar la billetera
+            $loadWalletPayload = [
+                "jsonrpc" => "1.0",
+                "id" => "curltest",
+                "method" => "loadwallet",
+                "params" => [$wallet->wallet] // Nombre de la billetera
+            ];
+    
+            $loadWalletResponse = $makeRequest($bitcoinCoreUrl, $loadWalletPayload);
+    
+            // Verificar si la billetera se cargó correctamente
+            if ($loadWalletResponse->failed() || isset($loadWalletResponse->json()['error'])) {
+                // Si hay un error al cargar la billetera, devolver el error
+                return response()->json(['error' => 'Error al cargar la billetera'], 500);
+            }
+    
+            // Si la billetera se cargó correctamente, proceder con la solicitud de transacciones
             $listTransactionsPayload = [
                 "jsonrpc" => "1.0",
                 "id" => "curltest",
                 "method" => "listtransactions",
                 "params" => ["*", 99999999, 0, true]
             ];
-
-            $response = $makeRequest($bitcoinCoreUrl, $listTransactionsPayload);
-
+    
+            $response = $makeRequest($bitcoinCoreUrl . '/wallet/' . $wallet->wallet, $listTransactionsPayload);
+    
             if ($response->failed() || isset($response->json()['error'])) {
                 return response()->json(['error' => 'Error al obtener transacciones'], 500);
             }
-
+    
             $data = $response->json();
-
+    
             if (!isset($data['result'])) {
                 return response()->json(['error' => 'No se encontraron transacciones'], 404);
             }
-
+    
             $receivedTransactions = [];
             $sentTransactions = [];
             $pendingTransactions = [];
             $balance = 0;
-
+    
             foreach ($data['result'] as $transaction) {
                 if ($transaction['category'] === 'receive') {
                     if ($transaction['confirmations'] === 0) {
@@ -303,7 +320,7 @@ class LoginRegisterController extends Controller
                     }
                 }
             }
-
+    
             return response()->json([
                 'balance' => $balance,
                 'receivedTransactions' => $receivedTransactions,
