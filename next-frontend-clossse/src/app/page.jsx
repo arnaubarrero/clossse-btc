@@ -1,16 +1,26 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Menu } from './components/menu/menu';
 import { getUserInfo } from './plugins/communicationManager';
-import { Wallet, ArrowDown, ArrowUp, Clock, Copy } from 'lucide-react';
+import { Wallet, Copy, ArrowDownCircle, ArrowUpCircle, Clock, CheckCircle2, Bitcoin, Building2 } from 'lucide-react';
 
 export default function Home() {
     const router = useRouter();
     const [error, setError] = useState(null);
     const [balance, setBalance] = useState(0);
+    const [theme, setTheme] = useState('light');
     const [loading, setLoading] = useState(true);
     const [transactions, setTransactions] = useState([]);
-    const [theme, setTheme] = useState('light');
+
+    const getTransactionIcon = (type) => {
+        switch (type) {
+            case 'received': return <ArrowDownCircle className="w-6 h-6 text-green-600 dark:text-green-400" />;
+            case 'sent': return <ArrowUpCircle className="w-6 h-6 text-red-600 dark:text-red-400" />;
+            case 'pending': return <Clock className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />;
+            default: return <Bitcoin className="w-6 h-6 text-gray-600 dark:text-gray-400" />;
+        }
+    };
 
     useEffect(() => {
         const detectSystemTheme = () => {
@@ -100,36 +110,86 @@ export default function Home() {
     }
 
     return (
-        <div className={`min-h-screen ${theme === 'light' ? 'bg-white text-[#008080]' : 'bg-black text-[#7FFFD4]'} p-8`}>
-            <div className="max-w-4xl mx-auto">
-                <div className={`${theme === 'light' ? 'bg-[#f6faff]' : 'bg-gray-800'} p-6 rounded-lg shadow-md mb-8`}>
-                    <h2 className="text-2xl font-semibold mb-4 flex items-center">
-                        <Wallet className="mr-2" /> Saldo total
-                    </h2>
-                    <p className="text-4xl font-bold">{Number(balance).toFixed(8)} ₿</p>
+        <div className={`min-h-screen ${theme === 'light' ? 'bg-gradient-to-br from-white to-blue-50 text-[#008080]' : 'bg-gradient-to-br from-gray-900 to-black text-[#7FFFD4]'
+            } p-8`}>
+            <div className="max-w-4xl mx-auto space-y-8">
+
+                <div className={`${theme === 'light' ? 'text-[#008080]' : 'text-[#7FFFD4]'} h-[20vh] flex flex-col justify-center p-8 shadow-md`}>
+                    <div className="flex items-center justify-between mb-6">
+                        <h2 className="text-2xl font-semibold flex items-center gap-3">
+                            <Wallet className="w-8 h-8" />
+                            <span>Saldo total</span>
+                        </h2>
+                    </div>
+                    <p className="text-5xl font-bold tracking-tight flex items-center gap-2">
+                        {Number(balance).toFixed(8)}
+                        <span className="text-3xl opacity-75">₿</span>
+                    </p>
                 </div>
 
-                <div className={`${theme === 'light' ? 'bg-[#f6faff]' : 'bg-gray-800'} p-6 rounded-lg shadow-md`}>
-                    <h2 className="text-2xl font-semibold mb-4">Historial de transacciones</h2>
-                    <ul>
-                        {transactions.map((tx, index) => (
-                            <li key={index} className={`mb-4 p-4 rounded-lg ${tx.type === 'received' ? 'bg-green-100 dark:bg-green-900' : tx.type === 'sent' ? 'bg-red-100 dark:bg-red-900' : 'bg-yellow-100 dark:bg-yellow-900'}`}>
-                                <p><strong>Tipo:</strong> {tx.type === 'received' ? 'Recibida' : tx.type === 'sent' ? 'Enviada' : 'Pendiente'}</p>
-                                <p><strong>Monto:</strong> {Number(tx.amount).toFixed(8)} BTC</p>
-                                <p className="flex items-center">
-                                    <strong>Dirección:</strong> {tx.address ? formatAddress(tx.address) : 'N/A'}
-                                    {tx.address && (
-                                        <button onClick={() => copyToClipboard(tx.address)} className={`ml-2 p-1 rounded hover:bg-opacity-20 ${theme === 'light' ? 'hover:bg-gray-500' : 'hover:bg-gray-300'}`} title="Copiar dirección">
-                                            <Copy size={16} />
-                                        </button>
-                                    )}
-                                </p>
-                                <p><strong>Confirmaciones:</strong> {tx.confirmations === 0 ? 'Pendiente' : tx.confirmations}</p>
-                            </li>
-                        ))}
-                    </ul>
+                <div className='h-[40vh] relative'>
+                    {/* Transactions Card */}
+                    <h2 className="text-2xl font-semibold flex items-center gap-3">
+                        <Building2 className="w-8 h-8" />
+                        <span>Historial de transacciones</span>
+                    </h2>
+                    <div className={`${theme === 'light' ? '' : ''} h-[80%] w-[100%] overflow-y-auto absolute bottom-0`}>
+                        <div className="space-y-4">
+                            {transactions.map((tx, index) => (
+                                <div key={index} className={` 
+                                        p-3 transition-all duration-300 hover:transform hover:scale-[1.02]
+                                        ${tx.type === 'received'
+                                        ? 'bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800'
+                                        : tx.type === 'sent'
+                                            ? 'bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800'
+                                            : 'bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-800'
+                                    }
+                                `}>
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div className="flex items-center gap-2">
+                                            {getTransactionIcon(tx.type)}
+                                        </div>
+                                        <span className="text-xl font-bold flex items-center gap-1">
+                                            {tx.type === 'sent' ? '' : '+'}{Number(tx.amount).toFixed(8)}
+                                            <Bitcoin className="w-5 h-5 opacity-75" />
+                                        </span>
+                                    </div>
+
+                                    <div className="space-y-2 text-sm">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-gray-600 dark:text-gray-300">Dirección</span>
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-mono">{formatAddress(tx.address)}</span>
+                                                <button onClick={() => copyToClipboard(tx.address)} className="p-1.5 " title="Copiar dirección" >
+                                                    <Copy size={14} />
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-gray-600 dark:text-gray-300">Confirmaciones</span>
+                                            <div className="flex items-center gap-2">
+                                                <CheckCircle2 className={`w-4 h-4 ${tx.confirmations === 0
+                                                    ? 'text-yellow-600 dark:text-yellow-400'
+                                                    : 'text-green-600 dark:text-green-400'
+                                                    }`} />
+                                                <span className={`font-medium ${tx.confirmations === 0
+                                                    ? 'text-yellow-600 dark:text-yellow-400'
+                                                    : 'text-green-600 dark:text-green-400'
+                                                    }`}>
+                                                    {tx.confirmations === 0 ? 'Pendiente' : tx.confirmations}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
                 </div>
             </div>
+            <Menu />
         </div>
     );
 }
