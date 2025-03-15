@@ -4,7 +4,7 @@
     use Illuminate\Http\Request;
     use Illuminate\Support\Facades\Http;
 
-    class BtcAddressController extends Controller {
+    class transferBtc extends Controller {
         public function search(Request $request) {
             $request->validate([
                 'query' => 'required|string|min:4',

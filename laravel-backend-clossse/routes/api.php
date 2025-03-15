@@ -3,7 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\BtcAddressController;
+use App\Http\Controllers\transferBtc;
 use App\Http\Controllers\FriendshipController;
 use App\Http\Controllers\auth\LoginRegisterController;
 
@@ -50,11 +50,11 @@ Route::middleware('auth:sanctum')->get('/search', function (Request $request) {
 
 // ==== GET ====================
 
-Route::get('/generate-address', [BtcAddressController::class, 'generateBitcoinAddress']);
+Route::get('/generate-address', [transferBtc::class, 'generateBitcoinAddress']);
 
 Route::middleware('auth:sanctum')->get('/friends', [FriendshipController::class, 'getFriends']);
 
-Route::middleware('auth:sanctum')->get('/search-users', [BtcAddressController::class, 'search']);
+Route::middleware('auth:sanctum')->get('/search-users', [transferBtc::class, 'search']);
 
 Route::middleware('auth:sanctum')->get('/user/name', [LoginRegisterController::class, 'getName']);
 
