@@ -5,6 +5,7 @@ namespace App\Http\Controllers\auth;
 use App\Models\User;
 use App\Models\Wallet;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Hash;
@@ -239,79 +240,132 @@ class LoginRegisterController extends Controller
         ], 200);
     }
 
+
     public function getUserInfo(Request $request)
     {
         try {
+            Log::info('Iniciando getUserInfo');
+
             $user = $request->user();
-    
+
             if (!$user) {
+                Log::error('Usuario no autenticado');
                 return response()->json(['error' => 'Usuario no autenticado'], 401);
             }
-    
+
             $wallet = $user->wallet;
-    
+
             if (!$wallet) {
+                Log::error('Wallet no encontrada para el usuario: ' . $user->id);
                 return response()->json(['error' => 'Wallet no encontrada'], 404);
             }
-    
+
+            Log::info('Wallet encontrada: ' . $wallet->wallet);
+
             $bitcoinCoreUrl = 'http://127.0.0.1:8332';
             $credentials = 'YXJuaV9iYXNvOlN2ZTE1ZkBzdWRhLTE=';
-    
+
             $makeRequest = function ($url, $payload) use ($credentials) {
                 return Http::withHeaders([
                     'Content-Type' => 'application/json',
                     'Authorization' => 'Basic ' . $credentials,
                 ])->post($url, $payload);
             };
-    
-            // Intentar cargar la billetera
-            $loadWalletPayload = [
+
+            // Verificar si la billetera ya está cargada
+            $listWalletsPayload = [
                 "jsonrpc" => "1.0",
                 "id" => "curltest",
-                "method" => "loadwallet",
-                "params" => [$wallet->wallet] // Nombre de la billetera
+                "method" => "listwallets",
+                "params" => []
             ];
-    
-            $loadWalletResponse = $makeRequest($bitcoinCoreUrl, $loadWalletPayload);
-    
-            // Verificar si la billetera se cargó correctamente
-            if ($loadWalletResponse->failed() || isset($loadWalletResponse->json()['error'])) {
-                // Si hay un error al cargar la billetera, devolver el error
-                return response()->json(['error' => 'Error al cargar la billetera'], 500);
+
+            Log::info('Verificando billeteras cargadas');
+            $listWalletsResponse = $makeRequest($bitcoinCoreUrl, $listWalletsPayload);
+
+            if ($listWalletsResponse->failed() || isset($listWalletsResponse->json()['error'])) {
+                $errorMessage = $listWalletsResponse->json()['error']['message'] ?? 'Error desconocido';
+                Log::error('Error al listar billeteras: ' . $errorMessage);
+                return response()->json(['error' => 'Error al listar billeteras: ' . $errorMessage], 500);
             }
-    
-            // Si la billetera se cargó correctamente, proceder con la solicitud de transacciones
+
+            $loadedWallets = $listWalletsResponse->json()['result'] ?? [];
+            Log::info('Billeteras cargadas: ' . json_encode($loadedWallets));
+
+            // Cargar la billetera solo si no está cargada
+            if (!in_array($wallet->wallet, $loadedWallets)) {
+                Log::info('Cargando billetera: ' . $wallet->wallet);
+
+                $loadWalletPayload = [
+                    "jsonrpc" => "1.0",
+                    "id" => "curltest",
+                    "method" => "loadwallet",
+                    "params" => [$wallet->wallet] // Nombre de la billetera
+                ];
+
+                $loadWalletResponse = $makeRequest($bitcoinCoreUrl, $loadWalletPayload);
+
+                if ($loadWalletResponse->failed() || isset($loadWalletResponse->json()['error'])) {
+                    $errorMessage = $loadWalletResponse->json()['error']['message'] ?? 'Error desconocido';
+                    Log::error('Error al cargar la billetera: ' . $errorMessage);
+                    return response()->json(['error' => 'Error al cargar la billetera: ' . $errorMessage], 500);
+                }
+
+                Log::info('Billetera cargada correctamente');
+            } else {
+                Log::info('La billetera ya está cargada: ' . $wallet->wallet);
+            }
+
+            // Proceder con la solicitud de transacciones
             $listTransactionsPayload = [
                 "jsonrpc" => "1.0",
                 "id" => "curltest",
                 "method" => "listtransactions",
                 "params" => ["*", 99999999, 0, true]
             ];
-    
+
+            Log::info('Solicitando transacciones para la billetera: ' . $wallet->wallet);
             $response = $makeRequest($bitcoinCoreUrl . '/wallet/' . $wallet->wallet, $listTransactionsPayload);
-    
+
             if ($response->failed() || isset($response->json()['error'])) {
-                return response()->json(['error' => 'Error al obtener transacciones'], 500);
+                $errorMessage = $response->json()['error']['message'] ?? 'Error desconocido';
+                Log::error('Error al obtener transacciones: ' . $errorMessage);
+                return response()->json(['error' => 'Error al obtener transacciones: ' . $errorMessage], 500);
             }
-    
+
             $data = $response->json();
-    
+
             if (!isset($data['result'])) {
+                Log::error('No se encontraron transacciones en la respuesta');
                 return response()->json(['error' => 'No se encontraron transacciones'], 404);
             }
-    
+
+            Log::info('Transacciones obtenidas correctamente');
+
             $receivedTransactions = [];
             $sentTransactions = [];
             $pendingTransactions = [];
             $balance = 0;
-    
+
             foreach ($data['result'] as $transaction) {
+                if (!isset($transaction['category'])) {
+                    Log::warning('Transacción sin categoría: ' . json_encode($transaction));
+                    continue; // Saltar transacciones sin categoría
+                }
+
                 if ($transaction['category'] === 'receive') {
+                    if (!isset($transaction['confirmations'])) {
+                        Log::warning('Transacción recibida sin confirmaciones: ' . json_encode($transaction));
+                        continue; // Saltar transacciones sin confirmaciones
+                    }
+
                     if ($transaction['confirmations'] === 0) {
                         $pendingTransactions[] = $transaction;
                     } else {
                         $receivedTransactions[] = $transaction;
-                        $balance += $transaction['amount'];
+                        if (isset($transaction['amount'])) {
+                            $balance += $transaction['amount'];
+                        }
                     }
                 } elseif ($transaction['category'] === 'send') {
                     $sentTransactions[] = $transaction;
@@ -320,7 +374,9 @@ class LoginRegisterController extends Controller
                     }
                 }
             }
-    
+
+            Log::info('Procesamiento de transacciones completado');
+
             return response()->json([
                 'balance' => $balance,
                 'receivedTransactions' => $receivedTransactions,
@@ -328,7 +384,8 @@ class LoginRegisterController extends Controller
                 'pendingTransactions' => $pendingTransactions,
             ]);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Error interno del servidor'], 500);
+            Log::error('Error interno del servidor: ' . $e->getMessage());
+            return response()->json(['error' => 'Error interno del servidor: ' . $e->getMessage()], 500);
         }
     }
 
