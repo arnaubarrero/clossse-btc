@@ -114,7 +114,7 @@ export default function Home() {
             } p-8`}>
             <div className="max-w-4xl mx-auto space-y-8">
 
-                <div className={`${theme === 'light' ? 'text-[#008080]' : 'text-[#7FFFD4]'} h-[20vh] flex flex-col justify-center p-8 shadow-md`}>
+                <div className={`${theme === 'light' ? 'text-[#008080]' : 'text-[#7FFFD4]'} h-[20vh] flex flex-col justify-center p-8`}>
                     <div className="flex items-center justify-between mb-6">
                         <h2 className="text-2xl font-semibold flex items-center gap-3">
                             <Wallet className="w-8 h-8" />
@@ -127,24 +127,16 @@ export default function Home() {
                     </p>
                 </div>
 
-                <div className='h-[40vh] relative'>
-                    {/* Transactions Card */}
-                    <h2 className="text-2xl font-semibold flex items-center gap-3">
+                <div className='h-[50vh] relative'>
+                    <h2 className="text-2xl font-semibold flex items-center gap-3 mb-4">
                         <Building2 className="w-8 h-8" />
                         <span>Historial de transacciones</span>
                     </h2>
-                    <div className={`${theme === 'light' ? '' : ''} h-[80%] w-[100%] overflow-y-auto absolute bottom-0`}>
+
+                    <div className={`${theme === 'light' ? 'bg-white shadow-md' : 'bg-gray-900 shadow-md'} h-[calc(100%-4rem)] w-full overflow-y-auto rounded-3xl`}>
                         <div className="space-y-4">
                             {transactions.map((tx, index) => (
-                                <div key={index} className={` 
-                                        p-3 transition-all duration-300 hover:transform hover:scale-[1.02]
-                                        ${tx.type === 'received'
-                                        ? 'bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800'
-                                        : tx.type === 'sent'
-                                            ? 'bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800'
-                                            : 'bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-800'
-                                    }
-                                `}>
+                                <div key={index} className={`p-3 transition-all duration-300 hover:transform hover:scale-[1.02] ${tx.type === 'received' ? 'bg-green-50 dark:bg-green-900/30' : tx.type === 'sent' ? 'bg-red-50 dark:bg-red-900/30' : 'bg-yellow-50 dark:bg-yellow-900/30' }`}>
                                     <div className="flex justify-between items-start mb-4">
                                         <div className="flex items-center gap-2">
                                             {getTransactionIcon(tx.type)}
@@ -169,15 +161,9 @@ export default function Home() {
                                         <div className="flex items-center justify-between">
                                             <span className="text-gray-600 dark:text-gray-300">Confirmaciones</span>
                                             <div className="flex items-center gap-2">
-                                                <CheckCircle2 className={`w-4 h-4 ${tx.confirmations === 0
-                                                    ? 'text-yellow-600 dark:text-yellow-400'
-                                                    : 'text-green-600 dark:text-green-400'
-                                                    }`} />
-                                                <span className={`font-medium ${tx.confirmations === 0
-                                                    ? 'text-yellow-600 dark:text-yellow-400'
-                                                    : 'text-green-600 dark:text-green-400'
-                                                    }`}>
-                                                    {tx.confirmations === 0 ? 'Pendiente' : tx.confirmations}
+                                                <CheckCircle2 className={`w-4 h-4 ${tx.confirmations === 0 ? 'text-yellow-600 dark:text-yellow-400' : 'text-green-600 dark:text-green-400' }`} />
+                                                <span className={`font-medium ${tx.confirmations === 0 ? 'text-yellow-600 dark:text-yellow-400' : 'text-green-600 dark:text-green-400' }`}>
+                                                    {tx.confirmations === 0 ? 'Pending to receive' : tx.confirmations}
                                                 </span>
                                             </div>
                                         </div>
@@ -186,7 +172,6 @@ export default function Home() {
                             ))}
                         </div>
                     </div>
-
                 </div>
             </div>
             <Menu />
