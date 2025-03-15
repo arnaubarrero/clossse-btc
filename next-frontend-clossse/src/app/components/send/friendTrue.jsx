@@ -1,35 +1,33 @@
 "use client";
 import { useEffect, useState } from 'react';
+import { getFriendsList } from '../../plugins/communicationManager';
+import { useRouter } from 'next/navigation'; // Importar useRouter
 
 const FriendTrue = () => {
     const [friends, setFriends] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const router = useRouter(); // Inicializar useRouter
+
+    // Función para formatear la dirección pública
+    const formatPublicAddress = (address) => {
+        if (!address || address.length < 8) {
+            return address || 'No disponible';
+        }
+        const firstThree = address.slice(0, 3);
+        const lastFive = address.slice(-5);
+        return `${firstThree}...${lastFive}`;
+    };
+
+    // Función para redirigir a /user/send/id_user
+    const handleSend = (userId) => {
+        router.push(`/user/send/${userId}`);
+    };
 
     useEffect(() => {
         const fetchFriends = async () => {
-            const token = localStorage.getItem('Login Token');
-
-            if (!token) {
-                setError("No se encontró el token de autenticación.");
-                setLoading(false);
-                return;
-            }
-
             try {
-                const response = await fetch('http://localhost:8000/api/friends', {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error('Error al obtener la lista de amigos.');
-                }
-
-                const data = await response.json();
+                const data = await getFriendsList();
                 setFriends(data);
             } catch (error) {
                 console.error("Error fetching friends:", error);
@@ -65,7 +63,17 @@ const FriendTrue = () => {
                 <ul>
                     {friends.map(friend => (
                         <li key={friend.id} className="mb-2">
-                            {friend.name} {friend.apellidos} ({friend.email})
+                            <p className="font-semibold">{friend.name} {friend.apellidos}</p>
+                            <p className="text-gray-600">{friend.email}</p>
+                            <p className="text-gray-600">
+                                <strong>Dirección Pública:</strong> {formatPublicAddress(friend.public_address)}
+                            </p>
+                            <button
+                                onClick={() => handleSend(friend.id)} // Redirigir al hacer clic
+                                className="px-4 py-2 bg-[#008080] text-white rounded-lg hover:bg-[#006666] transition-colors"
+                            >
+                                Enviar
+                            </button>
                         </li>
                     ))}
                 </ul>

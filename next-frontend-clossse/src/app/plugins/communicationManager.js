@@ -133,7 +133,7 @@ export const getUserInfoById = async (userId) => {
     }
 
     try {
-        const response = await fetch(`${Host}/user-info/${userId}`, {
+        const response = await fetch(`${Host}/getUserInfoById/${userId}`, {
             method: 'GET',
             headers: {
                 'Accept': 'application/json',
@@ -149,6 +149,35 @@ export const getUserInfoById = async (userId) => {
         return data;
     } catch (error) {
         console.error('Error en getUserInfoById:', error);
+        throw error;
+    }
+};
+
+export const getFriendsList = async () => {
+    try {
+        const token = localStorage.getItem('Login Token');
+
+        if (!token) {
+            throw new Error('No se encontró el token de autenticación.');
+        }
+
+        const response = await fetch(`${Host}/friends`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(`Error ${response.status}: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error al obtener la lista de amigos:', error);
         throw error;
     }
 };

@@ -63,8 +63,21 @@ class FriendshipController extends Controller
             $query->select('friend_id')
                   ->from('friendships')
                   ->where('user_id', $user->id);
-        })->get();
+        })
+        ->with('wallet')
+        ->get(['id', 'name', 'apellidos', 'email', 'username']);
 
-        return response()->json($friends);
+        $formattedFriends = $friends->map(function ($friend) {
+            return [
+                'id' => $friend->id,
+                'name' => $friend->name,
+                'apellidos' => $friend->apellidos,
+                'email' => $friend->email,
+                'username' => $friend->username,
+                'public_address' => $friend->wallet ? $friend->wallet->public_address : null,
+            ];
+        });
+
+        return response()->json($formattedFriends);
     }
 }

@@ -15,7 +15,6 @@ Route::prefix('autentificacio')->group(function () {
 });
 
 
-
 Route::middleware('auth:sanctum')->get('/search', function (Request $request) {
     $request->validate([
         'query' => 'required|string|min:1|max:255',
@@ -48,13 +47,16 @@ Route::middleware('auth:sanctum')->get('/search', function (Request $request) {
     return response()->json($results);
 });
 
+
 // ==== GET ====================
+
+Route::get('/getUserInfoById/{id}', [transferBtc::class, 'getUserInfoById']);
 
 Route::get('/generate-address', [transferBtc::class, 'generateBitcoinAddress']);
 
-Route::middleware('auth:sanctum')->get('/friends', [FriendshipController::class, 'getFriends']);
-
 Route::middleware('auth:sanctum')->get('/search-users', [transferBtc::class, 'search']);
+
+Route::middleware('auth:sanctum')->get('/friends', [FriendshipController::class, 'getFriends']);
 
 Route::middleware('auth:sanctum')->get('/user/name', [LoginRegisterController::class, 'getName']);
 
