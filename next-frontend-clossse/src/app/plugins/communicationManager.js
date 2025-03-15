@@ -214,6 +214,35 @@ export const searchUsers = async (query) => {
     }
 };
 
+export const searchUsersTransaction = async (query) => {
+    try {
+        const token = localStorage.getItem('Login Token');
+
+        if (!token) {
+            throw new Error('No hay token de autenticación');
+        }
+
+        const response = await fetch(`${Host}/search-users?query=${query}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(`Error ${response.status}: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error en la búsqueda de usuarios:', error);
+        throw error;
+    }
+};
+
 // ========= ADD FRIEND =====================
 export const addFriend = async (friendId) => {
     try {

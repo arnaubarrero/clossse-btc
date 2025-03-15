@@ -14,11 +14,7 @@ Route::prefix('autentificacio')->group(function () {
     Route::middleware('auth:sanctum')->post('change-password', [LoginRegisterController::class, 'changePassword']);
 });
 
-Route::get('verify-email/{id}/{hash}', [LoginRegisterController::class, 'verifyEmail'])->name('verify.email');
 
-Route::middleware('auth:sanctum')->get('/user/name', [LoginRegisterController::class, 'getName']);
-
-Route::get('/generate-address', [BtcAddressController::class, 'generateBitcoinAddress']);
 
 Route::middleware('auth:sanctum')->get('/search', function (Request $request) {
     $request->validate([
@@ -52,10 +48,23 @@ Route::middleware('auth:sanctum')->get('/search', function (Request $request) {
     return response()->json($results);
 });
 
-Route::middleware('auth:sanctum')->post('/add-friend', [FriendshipController::class, 'addFriend']);
+// ==== GET ====================
+
+Route::get('/generate-address', [BtcAddressController::class, 'generateBitcoinAddress']);
 
 Route::middleware('auth:sanctum')->get('/friends', [FriendshipController::class, 'getFriends']);
 
-Route::middleware('auth:sanctum')->post('/update-username', [LoginRegisterController::class, 'updateUsername']);
+Route::middleware('auth:sanctum')->get('/search-users', [BtcAddressController::class, 'search']);
+
+Route::middleware('auth:sanctum')->get('/user/name', [LoginRegisterController::class, 'getName']);
 
 Route::middleware('auth:sanctum')->get('/user-info', [LoginRegisterController::class, 'getUserInfo']);
+
+Route::get('verify-email/{id}/{hash}', [LoginRegisterController::class, 'verifyEmail'])->name('verify.email');
+
+
+// ==== POST ===================
+
+Route::middleware('auth:sanctum')->post('/add-friend', [FriendshipController::class, 'addFriend']);
+
+Route::middleware('auth:sanctum')->post('/update-username', [LoginRegisterController::class, 'updateUsername']);
