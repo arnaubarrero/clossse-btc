@@ -72,11 +72,11 @@ export function App() {
             </div>
         </div>,
 
-        <div key="step2" className="bg-white rounded-lg shadow-sm p-6 max-w-md mx-auto">
+        <div key="step2" className="bg-0">
             <FriendTrue />
         </div>,
 
-        <div key="step3" className="">
+        <div key="step3" className="bg-0">
             <NonUserForm />
         </div>,
 
