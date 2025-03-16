@@ -67,8 +67,38 @@ export const updateUsername = async (newUsername) => {
     return response.json();
 };
 
-export const transferBTC = async () => {
+export const transferBTC = async (userId, amount, publicAddress) => {
+    try {
+        const token = localStorage.getItem('Login Token');
 
+        if (!token) {
+            throw new Error('No hay token de autenticación.');
+        }
+
+        const response = await fetch(`${Host}/transfer`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+                user_id: userId,
+                amount: amount,
+                public_address: publicAddress,
+            }),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Error en la transferencia');
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error en transferBTC:', error);
+        throw error;
+    }
 };
 
 // ========= GET ========================

@@ -2,7 +2,7 @@
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Loader2, User, Wallet, Copy, Eye } from 'lucide-react';
-import { getUserInfoById } from '../../../plugins/communicationManager';
+import { getUserInfoById, transferBTC } from '../../../plugins/communicationManager'; // Importar transferBTC
 import Swal from 'sweetalert2';
 
 const UserSendPage = () => {
@@ -84,34 +84,16 @@ const UserSendPage = () => {
         }
 
         try {
-            const token = localStorage.getItem('Login Token'); // Obtener el token de sesión
+            // Llamar a la función transferBTC desde communicationManager
+            const response = await transferBTC(userId, amount, user.public_address);
 
-            const response = await fetch('http://localhost:8000/api/transfer', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                },
-                body: JSON.stringify({
-                    user_id: userId,
-                    amount: amount,
-                    public_address: user.public_address, // Incluir la dirección pública
-                }),
+            Swal.fire({
+                title: 'Éxito',
+                text: 'Transferencia realizada con éxito',
+                icon: 'success',
+                confirmButtonText: 'Aceptar',
             });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                Swal.fire({
-                    title: 'Éxito',
-                    text: 'Transferencia realizada con éxito',
-                    icon: 'success',
-                    confirmButtonText: 'Aceptar',
-                });
-                console.log('Respuesta del servidor:', data);
-            } else {
-                throw new Error(data.message || 'Error en la transferencia');
-            }
+            console.log('Respuesta del servidor:', response);
         } catch (error) {
             Swal.fire({
                 title: 'Error',
