@@ -50,18 +50,25 @@ class transferBtc extends Controller
 
     public function transfer(Request $request)
     {
+        // Obtener el usuario autenticado mediante el token de sesión
         $user = $request->user();
 
-        $userId = $user->id;
+        // Obtener la wallet y la dirección pública del usuario desde la relación `wallet`
+        $myWallet = $user->wallet->wallet; // Asumiendo que 'wallet' es el campo que almacena la wallet
+        $myPublicAddress = $user->wallet->public_address;
 
-        // Obtener la dirección pública del usuario (asumiendo que está en la base de datos)
-        $publicAddress = $user->public_address;
+        // Obtener los datos del request (dirección pública del destinatario y cantidad de BTC a enviar)
+        $recipientPublicAddress = $request->input('recipient_public_address');
+        $amountToSend = $request->input('amount');
 
         // Retornar toda la información
         return response()->json([
             'received_data' => $request->all(),
-            'user_id' => $userId,
-            'public_address' => $publicAddress,
+            'user_id' => $user->id,
+            'my_wallet' => $myWallet,
+            'my_public_address' => $myPublicAddress,
+            'recipient_public_address' => $recipientPublicAddress,
+            'amount_to_send' => $amountToSend,
         ]);
     }
 }
