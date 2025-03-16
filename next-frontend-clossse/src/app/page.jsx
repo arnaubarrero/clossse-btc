@@ -9,38 +9,17 @@ export default function Home() {
     const router = useRouter();
     const [error, setError] = useState(null);
     const [balance, setBalance] = useState(0);
-    const [theme, setTheme] = useState('light');
     const [loading, setLoading] = useState(true);
     const [transactions, setTransactions] = useState([]);
 
     const getTransactionIcon = (type) => {
         switch (type) {
-            case 'received': return <ArrowDownCircle className="w-6 h-6 text-green-600 dark:text-green-400" />;
-            case 'sent': return <ArrowUpCircle className="w-6 h-6 text-red-600 dark:text-red-400" />;
-            case 'pending': return <Clock className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />;
-            default: return <Bitcoin className="w-6 h-6 text-gray-600 dark:text-gray-400" />;
+            case 'received': return <ArrowDownCircle className="w-6 h-6 text-green-600" />;
+            case 'sent': return <ArrowUpCircle className="w-6 h-6 text-red-600" />;
+            case 'pending': return <Clock className="w-6 h-6 text-yellow-600" />;
+            default: return <Bitcoin className="w-6 h-6 text-blue-500" />;
         }
     };
-
-    useEffect(() => {
-        const detectSystemTheme = () => {
-            const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            setTheme(isDarkMode ? 'dark' : 'light');
-        };
-
-        detectSystemTheme();
-
-        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-        const handleThemeChange = (e) => {
-            setTheme(e.matches ? 'dark' : 'light');
-        };
-
-        mediaQuery.addEventListener('change', handleThemeChange);
-
-        return () => {
-            mediaQuery.removeEventListener('change', handleThemeChange);
-        };
-    }, []);
 
     useEffect(() => {
         const token = localStorage.getItem('Login Token');
@@ -56,7 +35,7 @@ export default function Home() {
             const data = await getUserInfo(token);
 
             if (!data || data.balance === undefined) {
-                throw new Error('Datos de usuario no válidos.');
+                throw new Error('Invalid user data.');
             }
 
             setBalance(data.balance);
@@ -69,10 +48,10 @@ export default function Home() {
 
             setTransactions(allTransactions);
         } catch (error) {
-            console.error('Error al obtener la información del usuario:', error);
+            console.error('Error fetching user information:', error);
             setError(error.message);
 
-            if (error.message.includes('autenticación') || error.message.includes('401')) {
+            if (error.message.includes('authentication') || error.message.includes('401')) {
                 router.push('/user/login');
             }
         } finally {
@@ -87,83 +66,83 @@ export default function Home() {
 
     const copyToClipboard = (text) => {
         navigator.clipboard.writeText(text).then(() => {
-            alert('Dirección copiada al portapapeles');
+            alert('Address copied to clipboard');
         }).catch((err) => {
-            console.error('Error al copiar la dirección:', err);
+            console.error('Error copying address:', err);
         });
     };
 
     if (loading) {
         return (
-            <div className={`min-h-screen flex items-center justify-center ${theme === 'light' ? 'bg-white' : 'bg-black'}`}>
-                <p className={theme === 'light' ? 'text-[#008080]' : 'text-[#7FFFD4]'}>Cargando información...</p>
+            <div className="min-h-screen flex items-center justify-center bg-white">
+                <p className="text-blue-600">Loading information...</p>
             </div>
         );
     }
 
     if (error) {
         return (
-            <div className={`min-h-screen flex items-center justify-center ${theme === 'light' ? 'bg-white' : 'bg-black'}`}>
+            <div className="min-h-screen flex items-center justify-center bg-white">
                 <p className="text-red-500">Error: {error}</p>
             </div>
         );
     }
 
     return (
-        <div className={`min-h-screen ${theme === 'light' ? 'bg-gradient-to-br from-white to-blue-50 text-[#008080]' : 'bg-gradient-to-br from-gray-900 to-black text-[#7FFFD4]'
-            } p-8`}>
+        <div className="min-h-screen animated-blue-gradient text-blue-900 p-8">
             <div className="max-w-4xl mx-auto space-y-8">
 
-                <div className={`${theme === 'light' ? 'text-[#008080]' : 'text-[#7FFFD4]'} h-[20vh] flex flex-col justify-center p-8`}>
+                {/* Balance Section */}
+                <div className="h-[20vh] flex flex-col justify-center p-8">
                     <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-2xl font-semibold flex items-center gap-3">
-                            <Wallet className="w-8 h-8" />
-                            <span>Saldo total</span>
+                        <h2 className="text-2xl font-semibold flex items-center gap-3 text-blue-800">
+                            <span>Total Balance</span>
                         </h2>
                     </div>
-                    <p className="text-5xl font-bold tracking-tight flex items-center gap-2">
+                    <p className="text-5xl font-bold tracking-tight flex items-center gap-2 text-blue-900">
                         {Number(balance).toFixed(8)}
                         <span className="text-3xl opacity-75">₿</span>
                     </p>
                 </div>
 
-                <div className='h-[50vh] relative'>
-                    <h2 className="text-2xl font-semibold flex items-center gap-3 mb-4">
-                        <Building2 className="w-8 h-8" />
-                        <span>Historial de transacciones</span>
+                {/* Transactions Section */}
+                <div className='h-[50vh] mt-1.5 relative'>
+                    <h2 className="text-2xl font-semibold flex items-center gap-3 mb-4 text-blue-800">
+                        <Building2 className="w-8 h-8 text-blue-600" />
+                        <span>Transaction History</span>
                     </h2>
 
-                    <div className={`${theme === 'light' ? 'bg-white shadow-md' : 'bg-gray-900 shadow-md'} h-[calc(100%-4rem)] w-full overflow-y-auto rounded-3xl`}>
-                        <div className="space-y-4">
+                    <div className="bg-white shadow-lg h-[calc(100%-4rem)] w-full overflow-y-auto rounded-2xl">
+                        <div className="space-y-4 p-4">
                             {transactions.map((tx, index) => (
-                                <div key={index} className={`p-3 transition-all duration-300 ${tx.type === 'received' ? 'bg-green-50 dark:bg-green-900/30' : tx.type === 'sent' ? 'bg-red-50 dark:bg-red-900/30' : 'bg-yellow-50 dark:bg-yellow-900/30' }`}>
+                                <div key={index} className={`p-4 transition-all duration-300 rounded-xl ${tx.type === 'received' ? 'bg-blue-100' : tx.type === 'sent' ? 'bg-blue-50' : 'bg-yellow-50'}`}>
                                     <div className="flex justify-between items-start mb-4">
                                         <div className="flex items-center gap-2">
                                             {getTransactionIcon(tx.type)}
                                         </div>
-                                        <span className="text-xl font-bold flex items-center gap-1">
+                                        <span className={`text-xl font-bold flex items-center gap-1 ${tx.type === 'received' ? 'text-green-600' : tx.type === 'sent' ? 'text-red-600' : 'text-yellow-600'}`}>
                                             {tx.type === 'sent' ? '' : '+'}{Number(tx.amount).toFixed(8)}
                                             <Bitcoin className="w-5 h-5 opacity-75" />
                                         </span>
                                     </div>
 
-                                    <div className="space-y-2 text-sm">
+                                    <div className="space-y-2 text-sm text-blue-800">
                                         <div className="flex items-center justify-between">
-                                            <span className="text-gray-600 dark:text-gray-300">Dirección</span>
+                                            <span>Address</span>
                                             <div className="flex items-center gap-2">
                                                 <span className="font-mono">{formatAddress(tx.address)}</span>
-                                                <button onClick={() => copyToClipboard(tx.address)} className="p-1.5 " title="Copiar dirección" >
-                                                    <Copy size={14} />
+                                                <button onClick={() => copyToClipboard(tx.address)} className="p-1.5 hover:bg-blue-100 rounded-full" title="Copy address">
+                                                    <Copy size={14} className="text-blue-600" />
                                                 </button>
                                             </div>
                                         </div>
 
                                         <div className="flex items-center justify-between">
-                                            <span className="text-gray-600 dark:text-gray-300">Confirmaciones</span>
+                                            <span>Confirmations</span>
                                             <div className="flex items-center gap-2">
-                                                <CheckCircle2 className={`w-4 h-4 ${tx.confirmations === 0 ? 'text-yellow-600 dark:text-yellow-400' : 'text-green-600 dark:text-green-400' }`} />
-                                                <span className={`font-medium ${tx.confirmations === 0 ? 'text-yellow-600 dark:text-yellow-400' : 'text-green-600 dark:text-green-400' }`}>
-                                                    {tx.confirmations === 0 ? 'Pending to receive' : tx.confirmations}
+                                                <CheckCircle2 className={`w-4 h-4 ${tx.confirmations === 0 ? 'text-yellow-600' : 'text-green-600'}`} />
+                                                <span className={`font-medium ${tx.confirmations === 0 ? 'text-yellow-600' : 'text-green-600'}`}>
+                                                    {tx.confirmations === 0 ? 'Pending' : tx.confirmations}
                                                 </span>
                                             </div>
                                         </div>
