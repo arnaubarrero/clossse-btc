@@ -67,6 +67,8 @@ Route::get('verify-email/{id}/{hash}', [LoginRegisterController::class, 'verifyE
 
 // ==== POST ===================
 
+Route::middleware('auth:sanctum')->post('/transfer', [transferBtc::class, 'transfer']);
+
 Route::middleware('auth:sanctum')->post('/add-friend', [FriendshipController::class, 'addFriend']);
 
 Route::middleware('auth:sanctum')->post('/update-username', [LoginRegisterController::class, 'updateUsername']);

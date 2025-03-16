@@ -3,7 +3,7 @@ import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Loader2, User, Wallet, Copy, Eye } from 'lucide-react';
 import { getUserInfoById } from '../../../plugins/communicationManager';
-import Swal from 'sweetalert2'; // Importar SweetAlert2
+import Swal from 'sweetalert2';
 
 const UserSendPage = () => {
     const params = useParams();
@@ -11,7 +11,9 @@ const UserSendPage = () => {
     const [user, setUser] = useState(null);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [amount, setAmount] = useState(''); // Estado para el monto a transferir
 
+    // Obtener la información del usuario al cargar el componente
     useEffect(() => {
         const fetchUserInfo = async () => {
             try {
@@ -27,6 +29,7 @@ const UserSendPage = () => {
         fetchUserInfo();
     }, [userId]);
 
+    // Formatear la dirección pública para mostrarla parcialmente
     const formatPublicAddress = (address) => {
         if (!address || address.length < 10) {
             return address || 'No disponible';
@@ -36,6 +39,7 @@ const UserSendPage = () => {
         return `${firstFive}...${lastFive}`;
     };
 
+    // Mostrar la dirección pública completa en un modal
     const showFullAddress = (address) => {
         Swal.fire({
             title: 'Dirección Pública Completa',
@@ -45,6 +49,7 @@ const UserSendPage = () => {
         });
     };
 
+    // Copiar la dirección pública al portapapeles
     const copyToClipboard = (text) => {
         navigator.clipboard.writeText(text).then(() => {
             Swal.fire({
@@ -56,6 +61,69 @@ const UserSendPage = () => {
         });
     };
 
+    // Función para manejar la transferencia de BTC
+    const handleTransfer = async () => {
+        if (!amount || amount <= 0) {
+            Swal.fire({
+                title: 'Error',
+                text: 'Por favor, ingresa un monto válido.',
+                icon: 'error',
+                confirmButtonText: 'Aceptar',
+            });
+            return;
+        }
+
+        if (!user?.public_address) {
+            Swal.fire({
+                title: 'Error',
+                text: 'No se encontró la dirección pública del usuario.',
+                icon: 'error',
+                confirmButtonText: 'Aceptar',
+            });
+            return;
+        }
+
+        try {
+            const token = localStorage.getItem('Login Token'); // Obtener el token de sesión
+
+            const response = await fetch('http://localhost:8000/api/transfer', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    user_id: userId,
+                    amount: amount,
+                    public_address: user.public_address, // Incluir la dirección pública
+                }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                Swal.fire({
+                    title: 'Éxito',
+                    text: 'Transferencia realizada con éxito',
+                    icon: 'success',
+                    confirmButtonText: 'Aceptar',
+                });
+                console.log('Respuesta del servidor:', data);
+            } else {
+                throw new Error(data.message || 'Error en la transferencia');
+            }
+        } catch (error) {
+            Swal.fire({
+                title: 'Error',
+                text: error.message,
+                icon: 'error',
+                confirmButtonText: 'Aceptar',
+            });
+            console.error('Error en la transferencia:', error);
+        }
+    };
+
+    // Mostrar un mensaje de error si ocurre algún problema
     if (error) {
         return (
             <div className="p-4 bg-white rounded-lg shadow-md">
@@ -106,11 +174,20 @@ const UserSendPage = () => {
 
                             <div className="mt-4">
                                 <label className="text-sm text-gray-600 block mb-1">Monto de BTC a enviar</label>
-                                <input type="number" placeholder="Ingresa el monto" className="text-gray-600 w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#008080]" />
+                                <input
+                                    type="number"
+                                    placeholder="Ingresa el monto"
+                                    value={amount}
+                                    onChange={(e) => setAmount(e.target.value)}
+                                    className="text-gray-600 w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#008080]"
+                                />
                             </div>
                         </div>
 
-                        <button className="w-full bg-[#008080] hover:bg-[#008080]/90 text-white py-3 px-4 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center gap-2">
+                        <button
+                            onClick={handleTransfer}
+                            className="w-full bg-[#008080] hover:bg-[#008080]/90 text-white py-3 px-4 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center gap-2"
+                        >
                             Continuar con el envío
                         </button>
                     </div>

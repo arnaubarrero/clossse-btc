@@ -16,7 +16,7 @@ export const login = async (email, password) => {
             throw new Error(`Error ${response.status}: ${response.statusText}`);
         }
 
-        const data = await response.json(); 
+        const data = await response.json();
         localStorage.setItem('Login Token', data.token)
         return data;
     } catch (error) {
@@ -25,7 +25,7 @@ export const login = async (email, password) => {
     }
 };
 
-export const register = async (name, apellidos, email, password,password_confirmation) => {
+export const register = async (name, apellidos, email, password, password_confirmation) => {
     try {
         const response = await fetch(`${Host}/autentificacio/register`, {
             method: 'POST',
@@ -40,7 +40,7 @@ export const register = async (name, apellidos, email, password,password_confirm
             throw new Error(`Error ${response.status}: ${response.statusText}`);
         }
 
-        const data = await response.json(); 
+        const data = await response.json();
         return data;
     } catch (error) {
         console.error('Error en la solicitud:', error);
@@ -65,6 +65,10 @@ export const updateUsername = async (newUsername) => {
     }
 
     return response.json();
+};
+
+export const transferBTC = async () => {
+
 };
 
 // ========= GET ========================
