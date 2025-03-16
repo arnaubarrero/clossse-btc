@@ -136,7 +136,7 @@ export default function Home() {
                     <div className={`${theme === 'light' ? 'bg-white shadow-md' : 'bg-gray-900 shadow-md'} h-[calc(100%-4rem)] w-full overflow-y-auto rounded-3xl`}>
                         <div className="space-y-4">
                             {transactions.map((tx, index) => (
-                                <div key={index} className={`p-3 transition-all duration-300 hover:transform hover:scale-[1.02] ${tx.type === 'received' ? 'bg-green-50 dark:bg-green-900/30' : tx.type === 'sent' ? 'bg-red-50 dark:bg-red-900/30' : 'bg-yellow-50 dark:bg-yellow-900/30' }`}>
+                                <div key={index} className={`p-3 transition-all duration-300 ${tx.type === 'received' ? 'bg-green-50 dark:bg-green-900/30' : tx.type === 'sent' ? 'bg-red-50 dark:bg-red-900/30' : 'bg-yellow-50 dark:bg-yellow-900/30' }`}>
                                     <div className="flex justify-between items-start mb-4">
                                         <div className="flex items-center gap-2">
                                             {getTransactionIcon(tx.type)}
