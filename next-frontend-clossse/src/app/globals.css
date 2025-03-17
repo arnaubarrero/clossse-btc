@@ -40,5 +40,5 @@ body {
 .animated-blue-gradient {
   background: linear-gradient(270deg, #ffffff, #eef9ff, #d4f1ff, #c6eeff);
   background-size: 400% 400%;
-  animation: gradientAnimation 6s ease infinite;
+  animation: gradientAnimation 5s ease infinite;
 }
