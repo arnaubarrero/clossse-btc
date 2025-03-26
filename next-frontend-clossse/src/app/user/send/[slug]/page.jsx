@@ -1,19 +1,19 @@
 "use client";
-import { useParams } from 'next/navigation';
+import Swal from 'sweetalert2';
+import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Loader2, User, Wallet, Copy, Eye } from 'lucide-react';
-import { getUserInfoById, transferBTC } from '../../../plugins/communicationManager'; // Importar transferBTC
-import Swal from 'sweetalert2';
+import { getUserInfoById, transferBTC } from '../../../plugins/communicationManager';
 
 const UserSendPage = () => {
+    const router = useRouter();
     const params = useParams();
     const userId = params.slug;
     const [user, setUser] = useState(null);
     const [error, setError] = useState(null);
+    const [amount, setAmount] = useState('');
     const [loading, setLoading] = useState(true);
-    const [amount, setAmount] = useState(''); // Estado para el monto a transferir
 
-    // Obtener la información del usuario al cargar el componente
     useEffect(() => {
         const fetchUserInfo = async () => {
             try {
@@ -29,7 +29,6 @@ const UserSendPage = () => {
         fetchUserInfo();
     }, [userId]);
 
-    // Formatear la dirección pública para mostrarla parcialmente
     const formatPublicAddress = (address) => {
         if (!address || address.length < 10) {
             return address || 'No disponible';
@@ -39,7 +38,6 @@ const UserSendPage = () => {
         return `${firstFive}...${lastFive}`;
     };
 
-    // Mostrar la dirección pública completa en un modal
     const showFullAddress = (address) => {
         Swal.fire({
             title: 'Dirección Pública Completa',
@@ -49,7 +47,6 @@ const UserSendPage = () => {
         });
     };
 
-    // Copiar la dirección pública al portapapeles
     const copyToClipboard = (text) => {
         navigator.clipboard.writeText(text).then(() => {
             Swal.fire({
@@ -61,7 +58,6 @@ const UserSendPage = () => {
         });
     };
 
-    // Función para manejar la transferencia de BTC
     const handleTransfer = async () => {
         if (!amount || amount <= 0) {
             Swal.fire({
@@ -84,7 +80,6 @@ const UserSendPage = () => {
         }
 
         try {
-            // Llamar a la función transferBTC desde communicationManager
             const response = await transferBTC(userId, amount, user.public_address);
 
             Swal.fire({
@@ -105,7 +100,6 @@ const UserSendPage = () => {
         }
     };
 
-    // Mostrar un mensaje de error si ocurre algún problema
     if (error) {
         return (
             <div className="p-4 bg-white rounded-lg shadow-md">
@@ -115,8 +109,15 @@ const UserSendPage = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-[#deffff] to-[#b5ffe6] flex items-center justify-center p-4">
-            <div className="bg-white/90 backdrop-blur-sm p-8 rounded-xl shadow-xl max-w-md w-full">
+        <div className="min-h-screen flex items-center justify-center animated-blue-gradient text-blue-900">
+            <button 
+                className='fixed bg-red-500 top-2 left-2 py-1.5 px-4 rounded-md text-white' 
+                onClick={() => router.push('/user/send')}
+            > 
+                Cancelar 
+            </button>
+
+            <div className="bg-white/90 w-[90%] backdrop-blur-sm p-8 shadow-xl ">
                 <h1 className="text-3xl font-bold text-[#008080] mb-6 flex items-center gap-2">
                     <User className="w-8 h-8" />
                     Enviar a Usuario

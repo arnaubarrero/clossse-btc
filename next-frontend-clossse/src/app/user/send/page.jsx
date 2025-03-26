@@ -4,6 +4,7 @@ import { Menu } from '../../components/menu/menu';
 import FriendTrue from '../../components/send/friendTrue';
 import FriendFalse from '../../components/send/friendFalse';
 import NonUserForm from '../../components/send/noUserSend';
+import { ArrowLeft } from 'lucide-react';
 
 export function App() {
     const [currentStep, setCurrentStep] = useState(0);
@@ -30,79 +31,79 @@ export function App() {
     };
 
     const handleBackClick = () => {
-        if (currentStep === 4) {
-            setCurrentStep(0);
-        } else {
-            setCurrentStep(prevStep => prevStep - 1);
-        }
+        setCurrentStep(0);
     };
 
     const steps = [
-        <div key="step0" className="bg-white rounded-lg shadow-sm ">
-            <h1 className="text-2xl font-semibold text-gray-800 mb-6 text-center">
-                Is the user on "clossse"?
-            </h1>
-            <div className=" block gap-4 justify-center">
-                <button
-                    onClick={handleYesClick}
-                    className="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md transition-colors duration-200 font-medium">
-                    Yes
-                </button>
-                <button
-                    onClick={handleNoClick}
-                    className="px-6 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-md transition-colors duration-200 font-medium">
-                    No
-                </button>
+        <div key="step0" className="min-h-screen flex items-center justify-center animated-blue-gradient text-blue-900">
+            <div className="w-[90%] max-w-md mx-auto bg-white shadow-md p-6">
+                <h1 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+                    ¿Está el usuario en "clossse"?
+                </h1>
+                <div className="flex flex-col space-y-4">
+                    <button
+                        onClick={handleYesClick}
+                        className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 font-medium text-lg">
+                        Sí
+                    </button>
+                    <button
+                        onClick={handleNoClick}
+                        className="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg transition-colors duration-200 font-medium text-lg">
+                        No
+                    </button>
+                </div>
             </div>
         </div>,
 
-        <div key="step1" className="bg-white rounded-lg shadow-sm p-6 max-w-md mx-auto text-center">
-            <h2 className="text-2xl font-semibold text-gray-800 mb-6">Is the user a friend?</h2>
-            <div className="flex gap-4 justify-center">
-                <button
-                    onClick={() => handleFriendClick(true)}
-                    className="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md transition-colors duration-200 font-medium">
-                    Yes
-                </button>
-                <button
-                    onClick={() => handleFriendClick(false)}
-                    className="px-6 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-md transition-colors duration-200 font-medium">
-                    No
-                </button>
+        <div key="step1" className="min-h-screen flex items-center justify-center animated-blue-gradient text-blue-900">
+            <div className="w-[90%] max-w-md mx-auto bg-white shadow-md p-6">
+                <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">¿Es el usuario un amigo?</h2>
+                <div className="flex flex-col space-y-4">
+                    <button
+                        onClick={() => handleFriendClick(true)}
+                        className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 font-medium text-lg">
+                        Sí
+                    </button>
+                    <button
+                        onClick={() => handleFriendClick(false)}
+                        className="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg transition-colors duration-200 font-medium text-lg">
+                        No
+                    </button>
+                </div>
             </div>
         </div>,
 
-        <div key="step2" className="bg-0">
+        <div key="step2" className="min-h-[90vh]">
             <FriendTrue />
         </div>,
 
-        <div key="step3" className="bg-0">
+        <div key="step3" className="min-h-[90vh]">
             <NonUserForm />
         </div>,
 
-        <div key="step4" className="bg-0">
+        <div key="step4" className="min-h-[90vh]">
             <FriendFalse />
         </div>
     ];
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col justify-center items-center pb-[10vh]"> {/* Aseguramos espacio para el menú */}
-            <main className="w-full flex-1 flex flex-col justify-center items-center">
-                {steps[currentStep]}
-
+        <div className="min-h-screen bg-gray-50 flex flex-col">
+            <main className="flex-1 w-full">
                 {currentStep > 0 && (
-                    <div className="mt-6">
-                        <button
-                            onClick={handleBackClick}
-                            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-md transition-colors duration-200 font-medium"
-                        >
-                            ← Back
-                        </button>
-                    </div>
+                    <button
+                        onClick={handleBackClick}
+                        className="fixed top-4 left-4 z-50 p-2 bg-white rounded-full shadow-md hover:bg-gray-100 transition-colors duration-200"
+                    >
+                        <ArrowLeft className="w-6 h-6 text-gray-700" />
+                    </button>
                 )}
+                
+                {steps[currentStep]}
             </main>
 
-            <Menu />
+            <div className="fixed bottom-0 w-full">
+                <Menu />
+            </div>
         </div>
     );
 }
