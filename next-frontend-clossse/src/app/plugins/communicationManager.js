@@ -1,4 +1,6 @@
-const Host = process.env.NEXT_PUBLIC_CM_HOST;
+// const Host = process.env.NEXT_PUBLIC_CM_HOST;
+const Host = 'http://localhost:8000/api';
+
 
 // ========= POST =======================
 export const login = async (email, password) => {
